@@ -436,7 +436,7 @@
               <div class="val" id="val_AGI" data-val="10">10</div>
               <div class="mod"><span class="badge" id="mod_AGI">mod +0</span></div>
               <div class="controls">
-                <button class="btn small" data-k="AGI" data-d="-1">−</</button>
+                <button class="btn small" data-k="AGI" data-d="-1">−</button>
                 <button class="btn small" data-k="AGI" data-d="+1">+</button>
               </div>
             </div>
@@ -445,7 +445,7 @@
               <div class="val" id="val_VIG" data-val="10">10</div>
               <div class="mod"><span class="badge" id="mod_VIG">mod +0</span></div>
               <div class="controls">
-                <button class="btn small" data-k="VIG" data-d="-1">−</</button>
+                <button class="btn small" data-k="VIG" data-d="-1">−</button>
                 <button class="btn small" data-k="VIG" data-d="+1">+</button>
               </div>
             </div>
@@ -454,7 +454,7 @@
               <div class="val" id="val_AST" data-val="10">10</div>
               <div class="mod"><span class="badge" id="mod_AST">mod +0</span></div>
               <div class="controls">
-                <button class="btn small" data-k="AST" data-d="-1">−</</button>
+                <button class="btn small" data-k="AST" data-d="-1">−</button>
                 <button class="btn small" data-k="AST" data-d="+1">+</button>
               </div>
             </div>
@@ -463,7 +463,7 @@
               <div class="val" id="val_SAB" data-val="10">10</div>
               <div class="mod"><span class="badge" id="mod_SAB">mod +0</span></div>
               <div class="controls">
-                <button class="btn small" data-k="SAB" data-d="-1">−</</button>
+                <button class="btn small" data-k="SAB" data-d="-1">−</button>
                 <button class="btn small" data-k="SAB" data-d="+1">+</button>
               </div>
             </div>
@@ -472,7 +472,7 @@
               <div class="val" id="val_CAR" data-val="10">10</div>
               <div class="mod"><span class="badge" id="mod_CAR">mod +0</span></div>
               <div class="controls">
-                <button class="btn small" data-k="CAR" data-d="-1">−</</button>
+                <button class="btn small" data-k="CAR" data-d="-1">−</button>
                 <button class="btn small" data-k="CAR" data-d="+1">+</button>
               </div>
             </div>
@@ -481,7 +481,7 @@
               <div class="val" id="val_FE" data-val="10">10</div>
               <div class="mod"><span class="badge" id="mod_FE">mod +0</span></div>
               <div class="controls">
-                <button class="btn small" data-k="FE" data-d="-1">−</</button>
+                <button class="btn small" data-k="FE" data-d="-1">−</button>
                 <button class="btn small" data-k="FE" data-d="+1">+</button>
               </div>
             </div>
@@ -1254,7 +1254,6 @@
         bencaos: [],
         ataques: [],
         inventario: {
-            // capacidade: $('#capacidade').value, // Capacidade agora é calculada dinamicamente
             items: []
         },
         historia: {
@@ -1329,7 +1328,6 @@
         });
       });
 
-      // $('#capacidade').value = data.inventario.capacidade; // Capacidade agora é calculada dinamicamente
       $('#notas').value = data.notas || '';
       $('#condicoes').value = data.condicoes || '';
       $('#pts_exp_espiritual').value = data.pts_exp_espiritual || 0;
@@ -1363,22 +1361,33 @@
       $('#traco').value = data.traco || '';
       $('#nivel').value = data.nivel || 1;
       $('#alinhamento').value = data.alinhamento || 'Fiel';
-      $('#regiaoOrigem').value = data.regiaoOrigem || ''; // Carregar novo campo
-      $('#talentoRegional').value = data.talentoRegional || ''; // Carregar novo campo
+      $('#regiaoOrigem').value = data.regiaoOrigem || '';
+      $('#talentoRegional').value = data.talentoRegional || '';
       
       if (data.recursos) {
-          $('#cur_pv').value = data.recursos.pv.cur || 10;
-          $('#max_pv').value = data.recursos.pv.max || 10;
-          $('#cur_pe').value = data.recursos.pe.cur || 10;
-          $('#max_pe').value = data.recursos.pe.max || 10;
-          $('#cur_pa').value = data.recursos.pa.cur || 10;
-          $('#max_pa').value = data.recursos.pa.max || 10;
-          $('#cur_xp').value = data.recursos.xp.cur || 0;
-          $('#max_xp').value = data.recursos.xp.max || 1000;
-          $('#corrupcaoSlider').value = data.recursos.corrupcao || 0;
-          updateCorrupcao(); // Chamar para atualizar o texto do efeito da corrupção
-          $('#velocidade').value = data.recursos.velocidade || 9;
-          $('#bonusIniciativa').value = data.recursos.iniciativa.bonus || 0;
+          const rec = data.recursos;
+          if (rec.pv) {
+            $('#cur_pv').value = rec.pv.cur || 10;
+            $('#max_pv').value = rec.pv.max || 10;
+          }
+          if (rec.pe) {
+            $('#cur_pe').value = rec.pe.cur || 10;
+            $('#max_pe').value = rec.pe.max || 10;
+          }
+          if (rec.pa) {
+            $('#cur_pa').value = rec.pa.cur || 10;
+            $('#max_pa').value = rec.pa.max || 10;
+          }
+          if (rec.xp) {
+            $('#cur_xp').value = rec.xp.cur || 0;
+            $('#max_xp').value = rec.xp.max || 1000;
+          }
+          $('#corrupcaoSlider').value = rec.corrupcao || 0;
+          updateCorrupcao(); 
+          $('#velocidade').value = rec.velocidade || 9;
+          if (rec.iniciativa) {
+            $('#bonusIniciativa').value = rec.iniciativa.bonus || 0;
+          }
           updateIniciativa();
       }
 
@@ -1399,15 +1408,18 @@
 
       $('#skillsBody').innerHTML = '';
       if (data.skills) { data.skills.forEach(s => addSkillRow(s.name, s.attr, s.trained, s.specialized, s.extra)); }
+      
       $('#classesList').innerHTML = '';
       if (data.classes) { data.classes.forEach(c => addClasse(c.name, c.desc)); }
+      
       $('#bencaosList').innerHTML = '';
       if (data.bencaos) { data.bencaos.forEach(b => addBencao(b.name, b.desc)); }
+      
       $('#attacksList').innerHTML = '';
       if (data.ataques) { data.ataques.forEach(a => addAttack(a.name, a.bonus, a.damage, a.type)); }
+      
       $('#itemsList').innerHTML = '';
       if (data.inventario && data.inventario.items) { data.inventario.items.forEach(i => addItem(i.name, i.slots, i.type, i.quantity)); }
-      // $('#capacidade').value = data.inventario.capacidade; // Capacidade agora é calculada dinamicamente
 
       $('#favoresOrdemList').innerHTML = '';
       if (data.favoresOrdem) { data.favoresOrdem.forEach(fo => addFavorOrdem(fo.ordem, fo.nivel, fo.beneficios)); }
@@ -1447,8 +1459,8 @@
           traco: "",
           nivel: 1,
           alinhamento: "Fiel",
-          regiaoOrigem: "", // Novo campo no reset
-          talentoRegional: "", // Novo campo no reset
+          regiaoOrigem: "",
+          talentoRegional: "",
           atributos: {
             FOR: 10, AGI: 10, VIG: 10, AST: 10, SAB: 10, CAR: 10, FE: 10
           },
@@ -1466,7 +1478,6 @@
           bencaos: [],
           ataques: [],
           inventario: {
-              // capacidade: 0, // Capacidade agora é calculada dinamicamente
               items: []
           },
           historia: {
@@ -1478,7 +1489,7 @@
           notas: "",
           condicoes: "",
           pts_exp_espiritual: 0,
-          favoresOrdem: [], // Novo campo no reset
+          favoresOrdem: [],
           distribuicao: {
             cfg_pts: 10,
             cfg_bonus6: 2,
@@ -1558,6 +1569,34 @@
       showMessageBox("Ficha exportada como JSON.");
     }
     
+    // --- CORREÇÃO INICIA AQUI ---
+    /**
+     * Verifica se um item é um objeto (e não um array ou nulo).
+     */
+    function isObject(item) {
+        return (item && typeof item === 'object' && !Array.isArray(item));
+    }
+
+    /**
+     * Junta recursivamente as propriedades de um ou mais objetos de origem em um objeto de destino.
+     */
+    function deepMerge(target, ...sources) {
+        if (!sources.length) return target;
+        const source = sources.shift();
+
+        if (isObject(target) && isObject(source)) {
+            for (const key in source) {
+                if (isObject(source[key])) {
+                    if (!target[key]) Object.assign(target, { [key]: {} });
+                    deepMerge(target[key], source[key]);
+                } else {
+                    Object.assign(target, { [key]: source[key] });
+                }
+            }
+        }
+        return deepMerge(target, ...sources);
+    }
+    
     function importFrom(file) {
       if (!file) return;
       const reader = new FileReader();
@@ -1565,17 +1604,43 @@
         try {
           const importedData = JSON.parse(e.target.result);
           const newId = generateId();
-          characterData[newId] = importedData;
+
+          // 1. Cria uma ficha padrão completa para servir como base segura.
+          const defaultSheet = resetCharacterData();
+          
+          // 2. Utiliza a função 'deepMerge' para mesclar de forma segura os dados
+          // importados sobre a ficha padrão. Isso garante que todos os campos
+          // existam, prevenindo erros com fichas de versões antigas.
+          const finalSheet = deepMerge(defaultSheet, importedData);
+          
+          // Tratamento especial para o campo 'historia', que mudou de texto para objeto.
+          if (typeof importedData.historia === 'string') {
+              finalSheet.historia.origem = importedData.historia;
+          }
+
+          // 3. Adiciona a nova ficha, já mesclada e segura, ao nosso objeto de dados.
+          characterData[newId] = finalSheet;
           currentId = newId;
-          loadCharacter(currentId); // 1. Carrega os dados importados para os campos da ficha
-          saveCharacter();  // 2. Salva o estado da ficha, que agora está preenchida
+          
+          // 4. CORREÇÃO DA ORDEM: Primeiro, atualiza a lista de personagens no menu.
+          updateCharacterList();
+          
+          // 5. Depois, carrega os dados da nova ficha para os campos do formulário.
+          loadCharacter(currentId);
+          
+          // 6. Finalmente, salva o estado atual no localStorage para persistir a importação.
+          saveCharacter();
+          
           showMessageBox("Ficha importada com sucesso!");
+          
         } catch (error) {
-          showMessageBox("Erro ao importar o arquivo. Verifique se é um arquivo JSON válido.");
+          console.error("Erro na importação:", error);
+          showMessageBox("Erro ao importar o arquivo. Verifique se é um arquivo JSON válido e compatível.");
         }
       };
       reader.readAsText(file);
     }
+    // --- CORREÇÃO TERMINA AQUI ---
 
     async function handlePrintAndSaveAsPDF() {
       await showMessageBox("Para salvar a ficha como PDF, selecione 'Salvar como PDF' na lista de impressoras do seu navegador após a janela de impressão ser aberta.");
@@ -1613,9 +1678,8 @@
       $('#addSkillBtn').addEventListener('click', addCustomSkill);
       $('#addClasseBtn').addEventListener('click', () => addClasse()); 
       $('#addBencaoBtn').addEventListener('click', () => addBencao()); 
-      // CORREÇÃO: Chamar addItem dentro de uma função anônima para evitar que o objeto Event seja passado como 'name'
       $('#addItemBtn').addEventListener('click', () => addItem());
-      $('#addAttackBtn').addEventListener('click', addAttack);
+      $('#addAttackBtn').addEventListener('click', () => addAttack());
       $('#rollIniciativaBtn').addEventListener('click', rollIniciativa);
       $('#addFavorOrdemBtn').addEventListener('click', () => addFavorOrdem());
       
@@ -1684,7 +1748,4 @@
   </script>
 </body>
 </html>
-
-
-
 
