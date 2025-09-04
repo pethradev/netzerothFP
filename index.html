@@ -1567,8 +1567,8 @@
           const newId = generateId();
           characterData[newId] = importedData;
           currentId = newId;
-          saveCharacter();
-          loadCharacter(currentId);
+          loadCharacter(currentId); // 1. Carrega os dados importados para os campos da ficha
+          saveCharacter();  // 2. Salva o estado da ficha, que agora está preenchida
           showMessageBox("Ficha importada com sucesso!");
         } catch (error) {
           showMessageBox("Erro ao importar o arquivo. Verifique se é um arquivo JSON válido.");
@@ -1684,6 +1684,7 @@
   </script>
 </body>
 </html>
+
 
 
 
