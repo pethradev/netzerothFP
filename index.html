@@ -678,7 +678,7 @@
         
         <div class="grid cols-2" style="margin-top: 12px;">
           <div class="card">
-            <h3 class="section-title">📜 Classe e Habilidades</h3>
+            <h3 class="section-title">📜 Habilidades de Classe</h3>
             <div class="list" id="classesList">
               </div>
             <button class="btn small" id="addClasseBtn">➕ Nova Habilidade</button>
@@ -1183,7 +1183,7 @@
           info = '<b>Alvorecido</b><br><b>Essência:</b> Seres tocados pela Luz, como ecos do Éden.<br><b>Atributo:</b> +1 Fé.<br><b>Traço:</b> Clarão Sagrado → 1 vez por descanso, ilumina uma área, revelando criaturas ocultas e afastando a Corrupção menor.<br><b>Narrativa:</b> Representam esperança, mas sofrem preconceito e medo das Sombras.';
           break;
         case 'errante':
-          info = '<b>Errante</b><br><b>Essência:</b> Criaturas de aparência humana que trazem marcas sombrias, mas lutam por redenção.<br><b>Atributo:</b> +1 Vigor ou Astúcia.<br><b>Traço:</b> Marca Sombria → Vantagem contra efeitos de medo e corrupção; desvantagem em Persuasão com pessoas muito religiosas.<br><b>Narrativa:</b> Símbolo da  graça e misericórdia oferecidas por Elyon aos arrependidos, lembrando que até na sombra há potencial para a luz.';
+          info = '<b>Errante</b><br><b>Essência:</b> Criaturas de aparência humana que trazem marcas sombrias, mas lutam por redenção.<br><b>Atributo:</b> +1 Vigor ou Astúcia.<br><b>Traço:</b> Marca Sombria → Vantagem contra efeitos de medo e corrupção; desvantagem em Persuasão com pessoas muito religiosas.<br><b>Narrativa:</b>Símbolo da  graça e misericórdia oferecidas por Elyon aos arrependidos, lembrando que até na sombra há potencial para a luz.';
           break;
         case 'auralino':
           info = '<b>Auralino</b><br><b>Essência:</b> Animais despertos pela Luz, com pureza moral e coragem.<br><b>Atributo:</b> +1 em um atributo coerente com a espécie (Força para leão, Agilidade para raposa).<br><b>Traço:</b> Instinto Ancestral → Vantagem em Sobrevivência e Percepção.<br><b>Narrativa:</b> Representam a voz da criação.';
@@ -1226,6 +1226,7 @@
     }
 
     // --- Character Management ---
+    // --- CORREÇÃO INICIA AQUI ---
     function saveCharacter() {
       if (!currentId) return;
 
@@ -1237,8 +1238,8 @@
         traco: $('#traco').value,
         nivel: $('#nivel').value,
         alinhamento: $('#alinhamento').value,
-        regiaoOrigem: $('#regiaoOrigem').value, // Salvar novo campo
-        talentoRegional: $('#talentoRegional').value, // Salvar novo campo
+        regiaoOrigem: $('#regiaoOrigem').value,
+        talentoRegional: $('#talentoRegional').value,
         atributos: {},
         skills: [],
         recursos: {
@@ -1265,7 +1266,7 @@
         notas: $('#notas').value,
         condicoes: $('#condicoes').value,
         pts_exp_espiritual: $('#pts_exp_espiritual').value,
-        favoresOrdem: [], // Salvar favores de ordem
+        favoresOrdem: [],
         distribuicao: {
           cfg_pts: $('#cfg_pts').value,
           cfg_bonus6: $('#cfg_bonus6').value,
@@ -1327,14 +1328,16 @@
           beneficios: item.querySelector('textarea').value
         });
       });
-
-      $('#notas').value = data.notas || '';
-      $('#condicoes').value = data.condicoes || '';
-      $('#pts_exp_espiritual').value = data.pts_exp_espiritual || 0;
       
       characterData[currentId] = data;
       localStorage.setItem('characterData', JSON.stringify(characterData));
-      updateCharacterList();
+      
+      // Apenas atualiza o nome na lista, não reconstrói tudo.
+      // Isso conserta o bug de troca de personagem.
+      const option = $(`#characterSelect option[value="${currentId}"]`);
+      if (option) {
+        option.textContent = data.nome || `Personagem ${currentId.substring(0, 5)}`;
+      }
     }
 
     function autoSave() {
@@ -1521,10 +1524,14 @@
         const newId = generateId();
         characterData[newId] = resetCharacterData();
         currentId = newId;
-        saveCharacter();
+        
         loadCharacter(currentId);
+        updateCharacterList();
+        saveCharacter();
+        
         showMessageBox("Nova ficha criada!");
     }
+
 
     function duplicateCharacter() {
         const newId = generateId();
@@ -1532,8 +1539,11 @@
         currentData.nome = `${currentData.nome} (Cópia)`;
         characterData[newId] = currentData;
         currentId = newId;
-        saveCharacter();
+
         loadCharacter(currentId);
+        updateCharacterList();
+        saveCharacter();
+
         showMessageBox("Ficha duplicada!");
     }
 
@@ -1548,11 +1558,16 @@
         delete characterData[currentId];
         const newId = Object.keys(characterData)[0];
         currentId = newId;
-        saveCharacter();
+
+        localStorage.setItem('characterData', JSON.stringify(characterData));
+        updateCharacterList();
         loadCharacter(currentId);
+
         showMessageBox("Ficha excluída com sucesso.");
       }
     }
+    
+    // --- FIM DA CORREÇÃO ---
 
     function exportCurrent() {
       const dataStr = JSON.stringify(characterData[currentId], null, 2);
@@ -1569,7 +1584,6 @@
       showMessageBox("Ficha exportada como JSON.");
     }
     
-    // --- CORREÇÃO INICIA AQUI ---
     /**
      * Verifica se um item é um objeto (e não um array ou nulo).
      */
@@ -1622,7 +1636,7 @@
           characterData[newId] = finalSheet;
           currentId = newId;
           
-          // 4. CORREÇÃO DA ORDEM: Primeiro, atualiza a lista de personagens no menu.
+          // 4. Primeiro, atualiza a lista de personagens no menu.
           updateCharacterList();
           
           // 5. Depois, carrega os dados da nova ficha para os campos do formulário.
@@ -1640,7 +1654,6 @@
       };
       reader.readAsText(file);
     }
-    // --- CORREÇÃO TERMINA AQUI ---
 
     async function handlePrintAndSaveAsPDF() {
       await showMessageBox("Para salvar a ficha como PDF, selecione 'Salvar como PDF' na lista de impressoras do seu navegador após a janela de impressão ser aberta.");
