@@ -94,7 +94,7 @@
     .attr .val{font-size:1.8rem; font-weight:900}
     .attr .mod{font-size:1rem; font-weight:700; color:var(--muted)}
     .attr .controls{display:flex; gap:6px; justify-content:center; margin-top:8px}
-    .pill{display:inline-flex; align-items:center; gap:6px; padding:6px 10px; border-radius:999px; border:1px solid var(--border); background:var(--card)}
+    .pill{display:inline-flex; align-items:center; gap:6px; padding:6px 10px; border:1px solid var(--border); background:var(--card)}
     .subtle{color:var(--muted); font-size:.95rem}
     .warn{color:var(--warn)}
     .ok{color:var(--ok)}
@@ -206,6 +206,34 @@
       transition: background-color 0.3s ease;
     }
     #autosave-indicator.saved { background-color: var(--ok); }
+    
+    .status-item {
+        margin-bottom: 12px;
+        padding: 10px;
+        border-radius: 12px;
+        background: rgba(255, 255, 255, 0.05);
+        border: 1px solid var(--border);
+    }
+    .status-item h4 {
+        margin-top: 0;
+        margin-bottom: 6px;
+    }
+    .death-save-controls {
+        display: flex;
+        align-items: center;
+        gap: 8px;
+        margin-top: 8px;
+    }
+    .test-result{
+        font-size: 1.2rem;
+        font-weight: bold;
+        padding: 8px 12px;
+        border-radius: 12px;
+        border: 1px solid var(--border);
+        background: var(--card);
+        text-align: center;
+        margin-top: 8px;
+    }
 
     @media (max-width: 980px){
       .attr-grid{grid-template-columns: repeat(3, minmax(0,1fr));}
@@ -505,7 +533,7 @@
                   <th>Nome</th>
                   <th>Atributo</th>
                   <th title="Treinada">Treino</th>
-                  <th title="Especializada">Espec.</th>
+                  <th>Espec.</th>
                   <th>Extra</th>
                   <th>Total</th>
                   <th></th>
@@ -690,6 +718,66 @@
             <button class="btn small" id="addBencaoBtn">➕ Nova Bênção</button>
           </div>
         </div>
+        
+        <div class="grid cols-2" style="margin-top: 12px;">
+            <div class="card">
+                <h3 class="section-title">
+                    <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="lucide lucide-clipboard-list"><rect width="8" height="4" x="8" y="2"/><path d="M16 4h2a2 2 0 0 1 2 2v14a2 2 0 0 1-2 2H6a2 2 0 0 1-2-2V6a2 2 0 0 1 2-2h2"/><path d="M12 11h4"/><path d="M12 16h4"/><path d="M8 11h.01"/><path d="M8 16h.01"/></svg>
+                    Condições de Combate
+                </h3>
+                <label>Condição Atual
+                    <select id="currentCondition">
+                        <option value="Saudável">Saudável</option>
+                        <option value="Atordoado">Atordoado</option>
+                        <option value="Envenenado">Envenenado</option>
+                        <option value="Imobilizado">Imobilizado</option>
+                        <option value="Inspirado">Inspirado</option>
+                        <option value="Amedrontado">Amedrontado</option>
+                    </select>
+                </label>
+                <div class="status-item" style="margin-top: 12px;">
+                    <h4>Efeitos</h4>
+                    <ul id="conditionEffects" class="hint">
+                        <li><b>Saudável:</b> Nenhuma condição especial.</li>
+                    </ul>
+                </div>
+            </div>
+            
+            <div class="card">
+                <h3 class="section-title">🎲 Testes de Resistência à Morte</h3>
+                <p class="hint">Quando seu PV chega a 0, você faz testes de Vigor para não morrer. Seus sucessos e falhas são contados abaixo.</p>
+                <div class="grid cols-2" style="margin-top: 12px;">
+                    <div>
+                        <p class="ok">Sucessos: <b id="deathSavesSuccess">0</b></p>
+                        <div class="death-save-controls">
+                            <button class="btn small primary" id="addDeathSuccess">➕</button>
+                            <button class="btn small destructive" id="minusDeathSuccess">➖</button>
+                        </div>
+                    </div>
+                    <div>
+                        <p class="danger">Falhas: <b id="deathSavesFail">0</b></p>
+                        <div class="death-save-controls">
+                            <button class="btn small primary" id="addDeathFail">➕</button>
+                            <button class="btn small destructive" id="minusDeathFail">➖</button>
+                        </div>
+                    </div>
+                    <div style="grid-column: span 2; display: flex; justify-content: center; gap: 8px; margin-top: 12px;">
+                        <button class="btn primary" id="rollDeathSaveBtn">Rolar Teste</button>
+                        <button class="btn destructive" id="resetDeathSavesBtn">Resetar</button>
+                    </div>
+                </div>
+                <div class="hint" style="margin-top: 12px;">
+                    <b>Sucesso (DF 10):</b> Marca um sucesso. Com <b>3 sucessos</b>, você estabiliza.
+                    <br>
+                    <b>Falha (abaixo de 10):</b> Marca uma falha. Com <b>3 falhas</b>, você morre.
+                    <br>
+                    Um <b>20 natural</b> conta como 2 sucessos. Um <b>1 natural</b> conta como 2 falhas.
+                </div>
+                <label style="margin-top: 12px;">Última Rolagem
+                    <div class="test-result" id="deathRoll"></div>
+                </label>
+            </div>
+        </div>
       </section>
 
       <section class="pane" data-pane="4">
@@ -795,6 +883,15 @@
     let characterData = {};
     let saveTimeout = null;
 
+    const conditionEffectsData = {
+        'Saudável': 'Nenhuma condição especial.',
+        'Atordoado': 'Perde o próximo turno.',
+        'Envenenado': '–2 em testes físicos até ser curado.',
+        'Imobilizado': 'Não pode se mover.',
+        'Inspirado': 'Vantagem no próximo teste.',
+        'Amedrontado': 'Desvantagem contra a fonte do medo.'
+    };
+    
     // Dados de lore para regiões e bênçãos (apenas para exibição)
     const regioesLoreData = [
       { name: "Haravoth", desc: "Planícies férteis. Povos nômades e agricultores. Perigos: Invasores e criaturas das sombras. Inspira: Comunidades unidas, coragem simples e sabedoria popular." },
@@ -1169,11 +1266,11 @@
       const roll = Math.floor(Math.random() * 20) + 1;
       const total = roll + agiMod + bonus;
       $('#totalIniciativa').value = total;
-      $('#lastRoll').textContent = total;
       const rollLog = $('#rollLog');
       const newRoll = document.createElement('div');
       newRoll.textContent = `Iniciativa: D20(${roll}) + Mod Agi(${agiMod}) + Bônus(${bonus}) = ${total}`;
       rollLog.prepend(newRoll);
+      autoSave();
     }
     
     function atualizarEspecie() {
@@ -1229,9 +1326,69 @@
       itemDiv.querySelector(".remove-item").addEventListener("click", () => { itemDiv.remove(); autoSave(); });
       autoSave();
     }
+    
+    function updateConditionEffects() {
+        const condition = $('#currentCondition').value;
+        const effectsList = $('#conditionEffects');
+        const effectsHTML = `<li><b>${condition}:</b> ${conditionEffectsData[condition]}</li>`;
+        effectsList.innerHTML = effectsHTML;
+        autoSave();
+    }
+    
+    // --- Death Saves ---
+    let deathSuccesses = 0;
+    let deathFails = 0;
+
+    function updateDeathSaves() {
+        $('#deathSavesSuccess').textContent = deathSuccesses;
+        $('#deathSavesFail').textContent = deathFails;
+        autoSave();
+    }
+    
+    function resetDeathSaves() {
+        deathSuccesses = 0;
+        deathFails = 0;
+        updateDeathSaves();
+        showMessageBox("Testes de morte resetados.");
+    }
+    
+    function rollDeathSave() {
+      if (parseInt($('#cur_pv').value) > 0) {
+          showMessageBox("Você não precisa rolar um teste de morte, pois seus PVs estão acima de 0.");
+          return;
+      }
+      
+      const roll = Math.floor(Math.random() * 20) + 1;
+      $('#deathRoll').textContent = roll;
+      
+      const logText = `Teste de Morte: D20(${roll})`;
+      const rollLog = $('#rollLog');
+      const newRoll = document.createElement('div');
+      
+      if (roll >= 10) {
+        deathSuccesses += (roll === 20) ? 2 : 1;
+        newRoll.textContent = `${logText} -> Sucesso! (${deathSuccesses} sucesso(s) acumulados)`;
+        newRoll.classList.add('ok');
+      } else {
+        deathFails += (roll === 1) ? 2 : 1;
+        newRoll.textContent = `${logText} -> Falha! (${deathFails} falha(s) acumuladas)`;
+        newRoll.classList.add('danger');
+      }
+      
+      rollLog.prepend(newRoll);
+      
+      if (deathSuccesses >= 3) {
+        showMessageBox("Você está estabilizado e seguro (por enquanto)!");
+        resetDeathSaves();
+      } else if (deathFails >= 3) {
+        showMessageBox("Você morreu.");
+        resetDeathSaves();
+      }
+      updateDeathSaves();
+      autoSave();
+    }
 
     // --- Character Management ---
-    // --- CORREÇÃO INICIA AQUI ---
     function saveCharacter() {
       if (!currentId) return;
 
@@ -1277,7 +1434,12 @@
           cfg_pts: $('#cfg_pts').value,
           cfg_bonus6: $('#cfg_bonus6').value,
           cfg_falha: $('#cfg_falha').value
-        }
+        },
+        deathSaves: {
+            successes: deathSuccesses,
+            fails: deathFails
+        },
+        currentCondition: $('#currentCondition').value
       };
 
       ATTRIBUTES.forEach(attr => {
@@ -1414,6 +1576,17 @@
         const mod = getAttrMod(attr);
         $(`#mod_${attr}`).textContent = `mod ${mod > 0 ? '+' : ''}${mod}`;
       });
+      
+      // Load Death Saves
+      if (data.deathSaves) {
+          deathSuccesses = data.deathSaves.successes || 0;
+          deathFails = data.deathSaves.fails || 0;
+          updateDeathSaves();
+      }
+      
+      // Load Current Condition
+      $('#currentCondition').value = data.currentCondition || 'Saudável';
+      updateConditionEffects();
 
       $('#skillsBody').innerHTML = '';
       if (data.skills) { data.skills.forEach(s => addSkillRow(s.name, s.attr, s.trained, s.specialized, s.extra)); }
@@ -1505,7 +1678,12 @@
             cfg_pts: 10,
             cfg_bonus6: 2,
             cfg_falha: "true"
-          }
+          },
+          deathSaves: {
+              successes: 0,
+              fails: 0
+          },
+          currentCondition: 'Saudável'
         };
     }
 
@@ -1695,6 +1873,17 @@
       $('#corrupcaoSlider').addEventListener('input', updateCorrupcao);
       $('#bonusIniciativa').addEventListener('input', updateIniciativa);
       
+      // Death save buttons
+      $('#addDeathSuccess').addEventListener('click', () => { deathSuccesses++; updateDeathSaves(); });
+      $('#minusDeathSuccess').addEventListener('click', () => { if (deathSuccesses > 0) deathSuccesses--; updateDeathSaves(); });
+      $('#addDeathFail').addEventListener('click', () => { deathFails++; updateDeathSaves(); });
+      $('#minusDeathFail').addEventListener('click', () => { if (deathFails > 0) deathFails--; updateDeathSaves(); });
+      $('#rollDeathSaveBtn').addEventListener('click', rollDeathSave);
+      $('#resetDeathSavesBtn').addEventListener('click', resetDeathSaves);
+      
+      // Conditions
+      $('#currentCondition').addEventListener('change', updateConditionEffects);
+      
       // Add buttons
       $('#addSkillBtn').addEventListener('click', addCustomSkill);
       $('#addClasseBtn').addEventListener('click', () => addClasse()); 
@@ -1769,4 +1958,3 @@
   </script>
 </body>
 </html>
-
