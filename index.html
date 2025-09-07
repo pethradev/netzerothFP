@@ -234,6 +234,39 @@
         text-align: center;
         margin-top: 8px;
     }
+    .entry {
+      background:var(--card); 
+      border:1px solid var(--border);
+      border-radius:20px; 
+      padding:16px;
+      margin-bottom: 12px;
+    }
+    .entry .entry-header {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      cursor: pointer;
+    }
+    .entry .entry-header h4 {
+      margin: 0;
+    }
+    .entry-content {
+      margin-top: 12px;
+      display: none; /* Inicia fechado */
+      grid-template-columns: 1fr;
+      gap: 12px;
+    }
+    .entry-content.open {
+      display: grid;
+    }
+    .entry-summary {
+        font-size: 0.9em;
+        margin-top: 8px;
+        color: var(--muted);
+    }
+    .entry-delete-btn {
+        margin-left: auto;
+    }
 
     @media (max-width: 980px){
       .attr-grid{grid-template-columns: repeat(3, minmax(0,1fr));}
@@ -338,7 +371,7 @@
         <button class="btn small" id="themeBtn">Tema</button>
       </div>
     </div>
-    <div class="tabs" id="tabs"><button class="tab active" data-open="1">Cabeçalho + Atributos</button><button class="tab" data-open="2">Skills + Indicadores</button><button class="tab" data-open="3">Combate + Classes</button><button class="tab" data-open="4">Inventário</button><button class="tab" data-open="5">História + Notas</button><button class="tab" data-open="6">Lore & Recompensas</button></div>
+    <div class="tabs" id="tabs"><button class="tab active" data-open="1">Cabeçalho + Atributos</button><button class="tab" data-open="2">Skills + Indicadores</button><button class="tab" data-open="3">Combate + Classes</button><button class="tab" data-open="4">Inventário</button><button class="tab" data-open="5">História + Notas</button><button class="tab" data-open="6">Lore & Recompensas</button><button class="tab" data-open="7">Histórico de Campanhas</button></div>
   </header>
 
   <div class="app">
@@ -861,6 +894,35 @@
         </div>
       </section>
 
+      <section class="pane" data-pane="7">
+          <div class="card">
+              <h3 class="section-title">📝 Histórico de Campanhas</h3>
+              <p class="hint">Use esta seção para registrar o progresso do seu personagem em cada campanha.</p>
+              
+              <div id="new-campaign-form" class="entry" style="display: none;">
+                  <div class="entry-content open">
+                      <label>Nome da Campanha<input type="text" id="new-campaign-name"></label>
+                      <label>Data<input type="date" id="new-campaign-date"></label>
+                      <label>Resumo da Partida<textarea id="new-campaign-summary" placeholder="O que aconteceu nesta partida?"></textarea></label>
+                      <label>Como o Personagem Contribuiu<textarea id="new-character-contribution" placeholder="O que seu personagem fez para influenciar a história?"></textarea></label>
+                      <label>Como a História o Evoluiu<textarea id="new-character-evolution" placeholder="O que seu personagem aprendeu, ganhou ou mudou?"></textarea></label>
+                      <div class="row" style="margin-top: 12px; justify-content: flex-end;">
+                          <button class="btn destructive" id="cancelNewEntryBtn">Cancelar</button>
+                          <button class="btn primary" id="saveNewEntryBtn">Salvar Registro</button>
+                      </div>
+                  </div>
+              </div>
+              
+              <div id="campaignHistory">
+                  <!-- Entradas de histórico serão adicionadas aqui via JS -->
+              </div>
+              
+              <div class="row">
+                  <button class="btn small" id="addCampaignEntryBtn">➕ Adicionar Nova Entrada</button>
+              </div>
+          </div>
+      </section>
+
     </div>
   </div>
 
@@ -892,7 +954,6 @@
         'Amedrontado': 'Desvantagem contra a fonte do medo.'
     };
     
-    // Dados de lore para regiões e bênçãos (apenas para exibição)
     const regioesLoreData = [
       { name: "Haravoth", desc: "Planícies férteis. Povos nômades e agricultores. Perigos: Invasores e criaturas das sombras. Inspira: Comunidades unidas, coragem simples e sabedoria popular." },
       { name: "Ashkar", desc: "Solo coberto por cinzas eternas. Sobreviventes endurecidos, caçadores de relíquias. Perigos: Tempestades de cinzas, ruínas amaldiçoadas. Inspira: Resistência e superação." },
@@ -922,7 +983,6 @@
       { name: "Escudo da Luz", effect: "Absorve até 2 ataques de aliados próximos.", duration: "1 vez" },
     ];
     
-    // Efeitos da corrupção por pontos
     const corrupcaoEffectsData = {
       '0-1': 'Manchas sutis, frio interior, visões breves.',
       '2-3': '–1 em testes sociais com fiéis; tentação ligada a desejo pessoal.',
@@ -1388,9 +1448,112 @@
       autoSave();
     }
 
+    // --- Campaign History ---
+    function addCampaignEntry(id, data, isOpen = false) {
+      const historyContainer = $('#campaignHistory');
+      const entryDiv = document.createElement('div');
+      entryDiv.id = `entry-${id}`;
+      entryDiv.classList.add('entry');
+      
+      entryDiv.innerHTML = `
+          <div class="entry-header">
+              <h4>${data.campaignName || 'Nova Campanha'} - ${data.date ? new Date(data.date).toLocaleDateString('pt-BR') : 'Sem Data'}</h4>
+              <button class="btn small destructive entry-delete-btn" data-id="${id}">X</button>
+          </div>
+          <div class="entry-content ${isOpen ? 'open' : ''}" id="entry-content-${id}">
+              <label>Nome da Campanha<input type="text" class="campaign-name" value="${data.campaignName || ''}"></label>
+              <label>Data<input type="date" class="campaign-date" value="${data.date || ''}"></label>
+              <label>Resumo da Partida<textarea class="campaign-summary" placeholder="O que aconteceu nesta partida?">${data.summary || ''}</textarea></label>
+              <label>Como o Personagem Contribuiu<textarea class="character-contribution" placeholder="O que seu personagem fez para influenciar a história?">${data.contribution || ''}</textarea></label>
+              <label>Como a História o Evoluiu<textarea class="character-evolution" placeholder="O que seu personagem aprendeu, ganhou ou mudou?">${data.evolution || ''}</textarea></label>
+          </div>
+      `;
+      
+      historyContainer.prepend(entryDiv);
+      
+      const deleteButton = entryDiv.querySelector('.entry-delete-btn');
+      deleteButton.addEventListener('click', (e) => {
+          e.stopPropagation(); 
+          deleteCampaignEntry(id);
+      });
+
+      entryDiv.querySelector('.entry-header').addEventListener('click', () => {
+          const content = $(`#entry-content-${id}`);
+          content.classList.toggle('open');
+      });
+
+      entryDiv.querySelectorAll('input, textarea').forEach(el => el.addEventListener('input', autoSave));
+    }
+    
+    function showNewEntryForm() {
+        const form = $('#new-campaign-form');
+        form.style.display = 'block';
+        $('#addCampaignEntryBtn').style.display = 'none';
+        
+        $('#new-campaign-name').value = '';
+        $('#new-campaign-date').value = new Date().toISOString().substring(0, 10);
+        $('#new-campaign-summary').value = '';
+        $('#new-character-contribution').value = '';
+        $('#new-character-evolution').value = '';
+    }
+
+    function saveNewEntry() {
+        const id = generateId();
+        const newEntry = {
+            id: id,
+            campaignName: $('#new-campaign-name').value,
+            date: $('#new-campaign-date').value,
+            summary: $('#new-campaign-summary').value,
+            contribution: $('#new-character-contribution').value,
+            evolution: $('#new-character-evolution').value
+        };
+        
+        if (!newEntry.campaignName) {
+            showMessageBox("O nome da campanha é obrigatório.");
+            return;
+        }
+
+        if (!characterData[currentId].campaignHistory) {
+            characterData[currentId].campaignHistory = [];
+        }
+        characterData[currentId].campaignHistory.push(newEntry);
+        
+        addCampaignEntry(id, newEntry, false);
+        
+        $('#new-campaign-form').style.display = 'none';
+        $('#addCampaignEntryBtn').style.display = 'flex';
+        
+        autoSave();
+    }
+
+    function deleteCampaignEntry(id) {
+        if (characterData[currentId] && characterData[currentId].campaignHistory) {
+            const confirmation = showConfirmBox("Tem certeza que deseja excluir esta entrada? Esta ação não pode ser desfeita.");
+            confirmation.then(isConfirmed => {
+                if (isConfirmed) {
+                    characterData[currentId].campaignHistory = characterData[currentId].campaignHistory.filter(entry => entry.id !== id);
+                    $(`#entry-${id}`).remove();
+                    autoSave();
+                }
+            });
+        }
+    }
+
     // --- Character Management ---
     function saveCharacter() {
       if (!currentId) return;
+
+      const campaignHistory = [];
+      $$('#campaignHistory .entry').forEach(entryDiv => {
+          campaignHistory.push({
+              id: entryDiv.id.replace('entry-', ''),
+              campaignName: entryDiv.querySelector('.campaign-name').value,
+              date: entryDiv.querySelector('.campaign-date').value,
+              summary: entryDiv.querySelector('.campaign-summary').value,
+              contribution: entryDiv.querySelector('.character-contribution').value,
+              evolution: entryDiv.querySelector('.character-evolution').value
+          });
+      });
 
       const data = {
         nome: $('#nome').value,
@@ -1439,7 +1602,8 @@
             successes: deathSuccesses,
             fails: deathFails
         },
-        currentCondition: $('#currentCondition').value
+        currentCondition: $('#currentCondition').value,
+        campaignHistory: campaignHistory
       };
 
       ATTRIBUTES.forEach(attr => {
@@ -1500,8 +1664,6 @@
       characterData[currentId] = data;
       localStorage.setItem('characterData', JSON.stringify(characterData));
       
-      // Apenas atualiza o nome na lista, não reconstrói tudo.
-      // Isso conserta o bug de troca de personagem.
       const option = $(`#characterSelect option[value="${currentId}"]`);
       if (option) {
         option.textContent = data.nome || `Personagem ${currentId.substring(0, 5)}`;
@@ -1577,14 +1739,12 @@
         $(`#mod_${attr}`).textContent = `mod ${mod > 0 ? '+' : ''}${mod}`;
       });
       
-      // Load Death Saves
       if (data.deathSaves) {
           deathSuccesses = data.deathSaves.successes || 0;
           deathFails = data.deathSaves.fails || 0;
           updateDeathSaves();
       }
       
-      // Load Current Condition
       $('#currentCondition').value = data.currentCondition || 'Saudável';
       updateConditionEffects();
 
@@ -1613,7 +1773,6 @@
         $('#historia_relacionamentos').value = data.historia.relacionamentos || '';
         $('#historia_eventos').value = data.historia.eventos || '';
       } else {
-        // Compatibilidade com saves antigos
         $('#historia_origem').value = data.historia || '';
         $('#historia_votos').value = '';
         $('#historia_relacionamentos').value = '';
@@ -1622,9 +1781,15 @@
       $('#notas').value = data.notas || '';
       $('#condicoes').value = data.condicoes || '';
       $('#pts_exp_espiritual').value = data.pts_exp_espiritual || 0;
+
+      $('#campaignHistory').innerHTML = '';
+      if (data.campaignHistory) {
+          data.campaignHistory.sort((a, b) => new Date(b.date) - new Date(a.date));
+          data.campaignHistory.forEach(entry => addCampaignEntry(entry.id, entry, false));
+      }
       
       updatePoints();
-      calculateSlots(); // Recalcular slots ao carregar
+      calculateSlots();
       recalcAllSkills();
       updateKPI('pv');
       updateKPI('pe');
@@ -1683,7 +1848,8 @@
               successes: 0,
               fails: 0
           },
-          currentCondition: 'Saudável'
+          currentCondition: 'Saudável',
+          campaignHistory: []
         };
     }
 
@@ -1753,8 +1919,6 @@
       }
     }
     
-    // --- FIM DA CORREÇÃO ---
-
     function exportCurrent() {
       const dataStr = JSON.stringify(characterData[currentId], null, 2);
       const blob = new Blob([dataStr], {type: "application/json"});
@@ -1770,16 +1934,10 @@
       showMessageBox("Ficha exportada como JSON.");
     }
     
-    /**
-     * Verifica se um item é um objeto (e não um array ou nulo).
-     */
     function isObject(item) {
         return (item && typeof item === 'object' && !Array.isArray(item));
     }
 
-    /**
-     * Junta recursivamente as propriedades de um ou mais objetos de origem em um objeto de destino.
-     */
     function deepMerge(target, ...sources) {
         if (!sources.length) return target;
         const source = sources.shift();
@@ -1805,30 +1963,21 @@
           const importedData = JSON.parse(e.target.result);
           const newId = generateId();
 
-          // 1. Cria uma ficha padrão completa para servir como base segura.
           const defaultSheet = resetCharacterData();
           
-          // 2. Utiliza a função 'deepMerge' para mesclar de forma segura os dados
-          // importados sobre a ficha padrão. Isso garante que todos os campos
-          // existam, prevenindo erros com fichas de versões antigas.
           const finalSheet = deepMerge(defaultSheet, importedData);
           
-          // Tratamento especial para o campo 'historia', que mudou de texto para objeto.
           if (typeof importedData.historia === 'string') {
               finalSheet.historia.origem = importedData.historia;
           }
 
-          // 3. Adiciona a nova ficha, já mesclada e segura, ao nosso objeto de dados.
           characterData[newId] = finalSheet;
           currentId = newId;
           
-          // 4. Primeiro, atualiza a lista de personagens no menu.
           updateCharacterList();
           
-          // 5. Depois, carrega os dados da nova ficha para os campos do formulário.
           loadCharacter(currentId);
           
-          // 6. Finalmente, salva o estado atual no localStorage para persistir a importação.
           saveCharacter();
           
           showMessageBox("Ficha importada com sucesso!");
@@ -1847,13 +1996,11 @@
     }
     
     function setEventListeners() {
-      // Main app listeners for auto-save
       $$('input, textarea, select').forEach(el => {
         el.addEventListener('input', autoSave);
-        el.addEventListener('change', autoSave); // Adicionado para selects
+        el.addEventListener('change', autoSave);
       });
 
-      // Tab listener
       $$('.tab').forEach(tab => tab.addEventListener('click', (e) => {
         $$('.tab').forEach(t => t.classList.remove('active'));
         $$('.pane').forEach(p => p.classList.remove('active'));
@@ -1861,10 +2008,8 @@
         $(`[data-pane="${e.currentTarget.dataset.open}"]`).classList.add('active');
       }));
 
-      // Atribute buttons
       $$('#attrGrid .btn').forEach(btn => btn.addEventListener('click', handleAttrChange));
       
-      // KPI inputs
       $$('#cur_pv, #max_pv').forEach(input => input.addEventListener('input', () => updateKPI('pv')));
       $$('#cur_pe, #max_pe').forEach(input => input.addEventListener('input', () => updateKPI('pe')));
       $$('#cur_pa, #max_pa').forEach(input => input.addEventListener('input', () => updateKPI('pa')));
@@ -1873,7 +2018,6 @@
       $('#corrupcaoSlider').addEventListener('input', updateCorrupcao);
       $('#bonusIniciativa').addEventListener('input', updateIniciativa);
       
-      // Death save buttons
       $('#addDeathSuccess').addEventListener('click', () => { deathSuccesses++; updateDeathSaves(); });
       $('#minusDeathSuccess').addEventListener('click', () => { if (deathSuccesses > 0) deathSuccesses--; updateDeathSaves(); });
       $('#addDeathFail').addEventListener('click', () => { deathFails++; updateDeathSaves(); });
@@ -1881,10 +2025,8 @@
       $('#rollDeathSaveBtn').addEventListener('click', rollDeathSave);
       $('#resetDeathSavesBtn').addEventListener('click', resetDeathSaves);
       
-      // Conditions
       $('#currentCondition').addEventListener('change', updateConditionEffects);
       
-      // Add buttons
       $('#addSkillBtn').addEventListener('click', addCustomSkill);
       $('#addClasseBtn').addEventListener('click', () => addClasse()); 
       $('#addBencaoBtn').addEventListener('click', () => addBencao()); 
@@ -1892,8 +2034,13 @@
       $('#addAttackBtn').addEventListener('click', () => addAttack());
       $('#rollIniciativaBtn').addEventListener('click', rollIniciativa);
       $('#addFavorOrdemBtn').addEventListener('click', () => addFavorOrdem());
+      $('#addCampaignEntryBtn').addEventListener('click', showNewEntryForm);
+      $('#cancelNewEntryBtn').addEventListener('click', () => {
+          $('#new-campaign-form').style.display = 'none';
+          $('#addCampaignEntryBtn').style.display = 'flex';
+      });
+      $('#saveNewEntryBtn').addEventListener('click', saveNewEntry);
       
-      // Header buttons
       $('#newCharBtn').addEventListener('click', newCharacter);
       $('#dupCharBtn').addEventListener('click', duplicateCharacter);
       $('#delCharBtn').addEventListener('click', deleteCharacter);
@@ -1911,10 +2058,9 @@
         document.body.setAttribute('data-theme', theme === 'dark' ? 'light' : 'dark');
       });
 
-      // Event listener para o novo campo de Pontos de Experiência Espiritual
       $('#pts_exp_espiritual').addEventListener('input', autoSave);
-      $('#regiaoOrigem').addEventListener('change', autoSave); // Novo listener
-      $('#talentoRegional').addEventListener('input', autoSave); // Novo listener
+      $('#regiaoOrigem').addEventListener('change', autoSave);
+      $('#talentoRegional').addEventListener('input', autoSave);
     }
 
     function populateLoreSections() {
@@ -1951,7 +2097,7 @@
       loadCharacter(currentId);
       setEventListeners();
       autoSave();
-      populateLoreSections(); // Preencher as seções de lore
+      populateLoreSections();
     }
     
     window.onload = init;
