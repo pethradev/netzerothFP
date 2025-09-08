@@ -3,7 +3,7 @@
 <head>
   <meta http-equiv="Content-Type" content="text/html; charset=UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1">
-  <title>A Lenda de Netzeroth - Ficha</title>
+  <title>A Lenda de Netzeroth</title>
   <style>
     :root{
       --bg: #0b0e14;
@@ -1155,7 +1155,7 @@
             const quantidade = parseInt(quantidadeInput.value) || 0;
             totalSlots += slots * quantidade;
         });
-        $('#slotsOcupados').textContent = totalSlots;
+        $('#slotsOcupados').textContent = totalSlots.toFixed(2); // Arredonda para 2 casas decimais
 
         const vig = parseInt($(`#val_VIG`).dataset.val);
         const maxSlots = vig * 5;
@@ -1190,11 +1190,10 @@
       itemDiv.querySelector(".item-nome").addEventListener("input", autoSave);
       itemDiv.querySelector(".item-slots").addEventListener("input", () => { calculateSlots(); autoSave(); });
       itemDiv.querySelector(".item-tipo").addEventListener("change", () => {
-        // Ajustar slots automaticamente para miudezas (5 miudezas = 1 slot, então 1 miudeza = 0.2 slot)
         const currentType = itemDiv.querySelector('.item-tipo').value;
         if (currentType === 'miudeza') {
             itemDiv.querySelector('.item-slots').value = 0.2;
-        } else if (itemDiv.querySelector('.item-slots').value == 0.2) { // Reset if it was a miudeza
+        } else if (itemDiv.querySelector('.item-slots').value == 0.2) { 
              itemDiv.querySelector('.item-slots').value = 1;
         }
         calculateSlots();
@@ -2104,4 +2103,3 @@
   </script>
 </body>
 </html>
-
