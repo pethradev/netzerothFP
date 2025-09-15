@@ -249,6 +249,10 @@
     }
     .entry .entry-header h4 {
       margin: 0;
+      flex-grow: 1;
+      overflow: hidden;
+      text-overflow: ellipsis;
+      white-space: nowrap;
     }
     .entry-content {
       margin-top: 12px;
@@ -266,6 +270,7 @@
     }
     .entry-delete-btn {
         margin-left: auto;
+        flex-shrink: 0;
     }
 
     @media (max-width: 980px){
@@ -290,8 +295,14 @@
       .app {
         padding: 0;
       }
-      header.top, .tabs, .footer-actions, .hint, .btn, .controls, .list button {
+      header.top, .tabs, .footer-actions, .hint, .btn, .controls, .list button, .entry-delete-btn {
         display: none !important;
+      }
+      .entry-content {
+        display: grid !important; /* Show content for printing */
+      }
+      .entry-header {
+        cursor: default;
       }
       input, textarea, select {
         border: 1px dashed #999;
@@ -316,7 +327,7 @@
         color: #000;
       }
       /* Prevent elements from breaking across pages */
-      .card, .table, .list .item {
+      .card, .table, .list .item, .entry {
         page-break-inside: avoid;
       }
       @page {
@@ -455,15 +466,32 @@
               <div class="hint">Regra assumida: baixar qualquer atributo para <b>6</b> concede <b>+2</b> pontos extras uma única vez. Você também deve ter ao menos <b>um atributo em 7 ou 8</b>. Aumentar acima de 10 consome 1 ponto por nível. Ajuste no menu ⚙️ se quiser mudar.</div>
               <details>
                 <summary>⚙️ Ajustes rápidos</summary>
-                <div class="grid cols-3">
-                  <label>Pontos iniciais<input type="number" id="cfg_pts" min="0" value="10"></label>
-                  <label>Bônus ao ter um 6<input type="number" id="cfg_bonus6" min="0" value="2"></label>
-                  <label>Forçar 1 atributo em 7/8?
-                    <select id="cfg_falha">
-                      <option value="true">Sim</option>
-                      <option value="false">Não</option>
-                    </select>
-                  </label>
+                <div class="grid cols-2">
+                    <div>
+                        <label>Pontos iniciais<input type="number" id="cfg_pts" min="0" value="10"></label>
+                    </div>
+                    <div>
+                        <label>Bônus ao ter um 6<input type="number" id="cfg_bonus6" min="0" value="2"></label>
+                    </div>
+                    <div>
+                        <label>Forçar 1 atributo em 7/8?
+                            <select id="cfg_falha">
+                                <option value="true">Sim</option>
+                                <option value="false">Não</option>
+                            </select>
+                        </label>
+                    </div>
+                </div>
+                <div style="margin-top: 12px; padding-top: 12px; border-top: 1px solid var(--border);">
+                    <label class="inline">
+                        <input type="checkbox" id="cfg_override_pts">
+                        <b>Sobrescrever Pontos Restantes</b>
+                    </label>
+                    <div style="margin-top: 8px;">
+                        <label>Valor Manual para Pontos Restantes
+                            <input type="number" id="cfg_manual_pts" value="10" disabled>
+                        </label>
+                    </div>
                 </div>
               </details>
             </div>
@@ -740,13 +768,13 @@
         <div class="grid cols-2" style="margin-top: 12px;">
           <div class="card">
             <h3 class="section-title">📜 Habilidades de Classe</h3>
-            <div class="list" id="classesList">
+            <div id="classesList">
               </div>
             <button class="btn small" id="addClasseBtn">➕ Nova Habilidade</button>
           </div>
           <div class="card">
             <h3 class="section-title">✨ Bênçãos e Dons</h3>
-            <div class="list" id="bencaosList">
+            <div id="bencaosList">
               </div>
             <button class="btn small" id="addBencaoBtn">➕ Nova Bênção</button>
           </div>
@@ -881,7 +909,7 @@
           <div class="card">
             <h3 class="section-title">🤝 Favores de Ordem</h3>
             <p class="hint">Rastreie sua reputação com as Ordens Livres.</p>
-            <div class="list" id="favoresOrdemList">
+            <div id="favoresOrdemList">
               <!-- Favores de Ordem serão adicionados aqui via JS -->
             </div>
             <button class="btn small" id="addFavorOrdemBtn">➕ Adicionar Favor de Ordem</button>
@@ -1111,39 +1139,85 @@
       autoSave();
     }
 
-    function addClasse(name = '', desc = '') {
-      const classesList = $('#classesList');
-      const itemDiv = document.createElement("div");
-      itemDiv.classList.add("list", "item");
-      itemDiv.innerHTML = `
-        <div>
-          <label>Nome<input type="text" placeholder="Nome da Habilidade" value="${name}"></label>
-          <label style="margin-top: 8px; display: block;">Descrição<textarea placeholder="Descrição da habilidade">${desc}</textarea></label>
-        </div>
-        <button class="btn small destructive remove-item">X</button>
-      `;
-      classesList.appendChild(itemDiv);
-      itemDiv.querySelector("input, textarea").addEventListener("input", autoSave);
-      itemDiv.querySelector(".remove-item").addEventListener("click", () => { itemDiv.remove(); autoSave(); });
-      autoSave();
+    function addClasse(id, data, isOpen = false) {
+        const classesList = $('#classesList');
+        const entryDiv = document.createElement('div');
+        entryDiv.id = `classe-entry-${id}`;
+        entryDiv.classList.add('entry');
+        entryDiv.innerHTML = `
+            <div class="entry-header">
+                <h4 class="entry-title">${data.name || 'Nova Habilidade'}</h4>
+                <button class="btn small destructive entry-delete-btn" data-id="${id}">X</button>
+            </div>
+            <div class="entry-content ${isOpen ? 'open' : ''}" id="classe-content-${id}">
+                <label>Nome<input type="text" class="entry-name" placeholder="Nome da Habilidade" value="${data.name}"></label>
+                <label style="margin-top: 8px; display: block;">Descrição<textarea class="entry-desc" placeholder="Descrição da habilidade">${data.desc}</textarea></label>
+            </div>
+        `;
+        classesList.appendChild(entryDiv);
+
+        const nameInput = entryDiv.querySelector('.entry-name');
+        const title = entryDiv.querySelector('.entry-title');
+
+        nameInput.addEventListener('input', () => {
+            title.textContent = nameInput.value || 'Nova Habilidade';
+            autoSave();
+        });
+
+        entryDiv.querySelector('.entry-header').addEventListener('click', (e) => {
+            if (e.target.classList.contains('entry-delete-btn')) return;
+            const content = $(`#classe-content-${id}`);
+            content.classList.toggle('open');
+        });
+
+        entryDiv.querySelector('.entry-delete-btn').addEventListener('click', (e) => {
+            e.stopPropagation();
+            entryDiv.remove();
+            autoSave();
+        });
+
+        entryDiv.querySelector('.entry-desc').addEventListener('input', autoSave);
     }
 
-    function addBencao(name = '', desc = '') {
-      const bencaosList = $('#bencaosList');
-      const itemDiv = document.createElement("div");
-      itemDiv.classList.add("list", "item");
-      itemDiv.innerHTML = `
-        <div>
-          <label>Nome<input type="text" placeholder="Nome da Bênção/Dom" value="${name}"></label>
-          <label style="margin-top: 8px; display: block;">Descrição<textarea placeholder="Descrição">${desc}</textarea></label>
-        </div>
-        <button class="btn small destructive remove-item">X</button>
-      `;
-      bencaosList.appendChild(itemDiv);
-      itemDiv.querySelector("input, textarea").addEventListener("input", autoSave);
-      itemDiv.querySelector(".remove-item").addEventListener("click", () => { itemDiv.remove(); autoSave(); });
-      autoSave();
+    function addBencao(id, data, isOpen = false) {
+        const bencaosList = $('#bencaosList');
+        const entryDiv = document.createElement('div');
+        entryDiv.id = `bencao-entry-${id}`;
+        entryDiv.classList.add('entry');
+        entryDiv.innerHTML = `
+            <div class="entry-header">
+                <h4 class="entry-title">${data.name || 'Nova Bênção/Dom'}</h4>
+                <button class="btn small destructive entry-delete-btn" data-id="${id}">X</button>
+            </div>
+            <div class="entry-content ${isOpen ? 'open' : ''}" id="bencao-content-${id}">
+                <label>Nome<input type="text" class="entry-name" placeholder="Nome da Bênção/Dom" value="${data.name}"></label>
+                <label style="margin-top: 8px; display: block;">Descrição<textarea class="entry-desc" placeholder="Descrição">${data.desc}</textarea></label>
+            </div>
+        `;
+        bencaosList.appendChild(entryDiv);
+
+        const nameInput = entryDiv.querySelector('.entry-name');
+        const title = entryDiv.querySelector('.entry-title');
+        
+        nameInput.addEventListener('input', () => {
+            title.textContent = nameInput.value || 'Nova Bênção/Dom';
+            autoSave();
+        });
+
+        entryDiv.querySelector('.entry-header').addEventListener('click', (e) => {
+            if (e.target.classList.contains('entry-delete-btn')) return;
+            $(`#bencao-content-${id}`).classList.toggle('open');
+        });
+
+        entryDiv.querySelector('.entry-delete-btn').addEventListener('click', (e) => {
+            e.stopPropagation();
+            entryDiv.remove();
+            autoSave();
+        });
+        
+        entryDiv.querySelector('.entry-desc').addEventListener('input', autoSave);
     }
+
     
     function calculateSlots() {
         let totalSlots = 0;
@@ -1155,7 +1229,7 @@
             const quantidade = parseInt(quantidadeInput.value) || 0;
             totalSlots += slots * quantidade;
         });
-        $('#slotsOcupados').textContent = totalSlots.toFixed(2); // Arredonda para 2 casas decimais
+        $('#slotsOcupados').textContent = totalSlots;
 
         const vig = parseInt($(`#val_VIG`).dataset.val);
         const maxSlots = vig * 5;
@@ -1231,6 +1305,15 @@
     }
     
     function updatePoints() {
+      const cfg_override = $('#cfg_override_pts').checked;
+      
+      if (cfg_override) {
+          const manual_pts = parseInt($('#cfg_manual_pts').value) || 0;
+          $('#pontosRestantes').textContent = manual_pts;
+          $('#requisitoFalha').style.display = 'none';
+          return; 
+      }
+
       const cfg_pts = parseInt($('#cfg_pts').value) || 0;
       const cfg_bonus6 = parseInt($('#cfg_bonus6').value) || 0;
       const cfg_falha = $('#cfg_falha').value === "true";
@@ -1285,8 +1368,8 @@
 
       updatePoints();
       recalcAllSkills();
-      updateIniciativa(); // Update initiative on AGI change
-      calculateSlots(); // Update slots capacity on VIG change
+      updateIniciativa(); 
+      calculateSlots(); 
       autoSave();
     }
 
@@ -1362,28 +1445,50 @@
       autoSave();
     }
 
-    function addFavorOrdem(ordem = '', nivel = 'Aliado', beneficios = '') {
-      const favoresOrdemList = $('#favoresOrdemList');
-      const itemDiv = document.createElement("div");
-      itemDiv.classList.add("list", "item");
-      itemDiv.innerHTML = `
-        <div>
-          <label>Ordem<input type="text" placeholder="Nome da Ordem" value="${ordem}"></label>
-          <label style="margin-top: 8px; display: block;">Nível de Favor
-            <select class="nivelFavor">
-              <option value="Aliado" ${nivel === 'Aliado' ? 'selected' : ''}>Aliado (+2 em 1 teste ligado à Ordem/sessão)</option>
-              <option value="Confidente" ${nivel === 'Confidente' ? 'selected' : ''}>Confidente (Recursos/contatos, converter falha em sucesso/sessão)</option>
-              <option value="Emissário" ${nivel === 'Emissário' ? 'selected' : ''}>Emissário (Pede grupo de apoio ou perdão social/sessão)</option>
-            </select>
-          </label>
-          <label style="margin-top: 8px; display: block;">Benefícios Adicionais<textarea placeholder="Benefícios específicos ou observações">${beneficios}</textarea></label>
-        </div>
-        <button class="btn small destructive remove-item">X</button>
-      `;
-      favoresOrdemList.appendChild(itemDiv);
-      itemDiv.querySelectorAll("input, select, textarea").forEach(el => el.addEventListener("input", autoSave));
-      itemDiv.querySelector(".remove-item").addEventListener("click", () => { itemDiv.remove(); autoSave(); });
-      autoSave();
+    function addFavorOrdem(id, data, isOpen = false) {
+        const favoresOrdemList = $('#favoresOrdemList');
+        const entryDiv = document.createElement('div');
+        entryDiv.id = `favor-entry-${id}`;
+        entryDiv.classList.add('entry');
+        entryDiv.innerHTML = `
+            <div class="entry-header">
+                <h4 class="entry-title">${data.ordem || 'Novo Favor de Ordem'}</h4>
+                <button class="btn small destructive entry-delete-btn" data-id="${id}">X</button>
+            </div>
+            <div class="entry-content ${isOpen ? 'open' : ''}" id="favor-content-${id}">
+                <label>Ordem<input type="text" class="entry-name" placeholder="Nome da Ordem" value="${data.ordem}"></label>
+                <label style="margin-top: 8px; display: block;">Nível de Favor
+                    <select class="nivelFavor">
+                        <option value="Aliado" ${data.nivel === 'Aliado' ? 'selected' : ''}>Aliado (+2 em 1 teste ligado à Ordem/sessão)</option>
+                        <option value="Confidente" ${data.nivel === 'Confidente' ? 'selected' : ''}>Confidente (Recursos/contatos, converter falha em sucesso/sessão)</option>
+                        <option value="Emissário" ${data.nivel === 'Emissário' ? 'selected' : ''}>Emissário (Pede grupo de apoio ou perdão social/sessão)</option>
+                    </select>
+                </label>
+                <label style="margin-top: 8px; display: block;">Benefícios Adicionais<textarea class="entry-desc" placeholder="Benefícios específicos ou observações">${data.beneficios}</textarea></label>
+            </div>
+        `;
+        favoresOrdemList.appendChild(entryDiv);
+
+        const nameInput = entryDiv.querySelector('.entry-name');
+        const title = entryDiv.querySelector('.entry-title');
+        
+        nameInput.addEventListener('input', () => {
+            title.textContent = nameInput.value || 'Novo Favor de Ordem';
+            autoSave();
+        });
+
+        entryDiv.querySelector('.entry-header').addEventListener('click', (e) => {
+            if (e.target.classList.contains('entry-delete-btn')) return;
+            $(`#favor-content-${id}`).classList.toggle('open');
+        });
+
+        entryDiv.querySelector('.entry-delete-btn').addEventListener('click', (e) => {
+            e.stopPropagation();
+            entryDiv.remove();
+            autoSave();
+        });
+        
+        entryDiv.querySelectorAll('select, textarea').forEach(el => el.addEventListener('input', autoSave));
     }
     
     function updateConditionEffects() {
@@ -1448,15 +1553,24 @@
     }
 
     // --- Campaign History ---
+    function formatDateForDisplay(dateString) {
+      if (!dateString || typeof dateString !== 'string') return 'Sem Data';
+      // Input is 'YYYY-MM-DD'. Appending T00:00:00 forces interpretation as local time midnight to avoid timezone issues.
+      const date = new Date(dateString + 'T00:00:00');
+      return date.toLocaleDateString('pt-BR');
+    }
+
     function addCampaignEntry(id, data, isOpen = false) {
       const historyContainer = $('#campaignHistory');
       const entryDiv = document.createElement('div');
       entryDiv.id = `entry-${id}`;
       entryDiv.classList.add('entry');
       
+      const displayDate = formatDateForDisplay(data.date);
+      
       entryDiv.innerHTML = `
           <div class="entry-header">
-              <h4>${data.campaignName || 'Nova Campanha'} - ${data.date ? new Date(data.date).toLocaleDateString('pt-BR') : 'Sem Data'}</h4>
+              <h4>${data.campaignName || 'Nova Campanha'} - ${displayDate}</h4>
               <button class="btn small destructive entry-delete-btn" data-id="${id}">X</button>
           </div>
           <div class="entry-content ${isOpen ? 'open' : ''}" id="entry-content-${id}">
@@ -1476,7 +1590,8 @@
           deleteCampaignEntry(id);
       });
 
-      entryDiv.querySelector('.entry-header').addEventListener('click', () => {
+      entryDiv.querySelector('.entry-header').addEventListener('click', (e) => {
+          if (e.target.classList.contains('entry-delete-btn')) return;
           const content = $(`#entry-content-${id}`);
           content.classList.toggle('open');
       });
@@ -1525,16 +1640,14 @@
         autoSave();
     }
 
-    function deleteCampaignEntry(id) {
+    async function deleteCampaignEntry(id) {
         if (characterData[currentId] && characterData[currentId].campaignHistory) {
-            const confirmation = showConfirmBox("Tem certeza que deseja excluir esta entrada? Esta ação não pode ser desfeita.");
-            confirmation.then(isConfirmed => {
-                if (isConfirmed) {
-                    characterData[currentId].campaignHistory = characterData[currentId].campaignHistory.filter(entry => entry.id !== id);
-                    $(`#entry-${id}`).remove();
-                    autoSave();
-                }
-            });
+            const isConfirmed = await showConfirmBox("Tem certeza que deseja excluir esta entrada? Esta ação não pode ser desfeita.");
+            if (isConfirmed) {
+                characterData[currentId].campaignHistory = characterData[currentId].campaignHistory.filter(entry => entry.id !== id);
+                $(`#entry-${id}`).remove();
+                autoSave();
+            }
         }
     }
 
@@ -1552,6 +1665,34 @@
               contribution: entryDiv.querySelector('.character-contribution').value,
               evolution: entryDiv.querySelector('.character-evolution').value
           });
+      });
+      
+      const classes = [];
+       $$('#classesList .entry').forEach(entryDiv => {
+          classes.push({
+            id: entryDiv.id.replace('classe-entry-', ''),
+            name: entryDiv.querySelector('.entry-name').value,
+            desc: entryDiv.querySelector('.entry-desc').value
+          });
+      });
+
+      const bencaos = [];
+       $$('#bencaosList .entry').forEach(entryDiv => {
+          bencaos.push({
+            id: entryDiv.id.replace('bencao-entry-', ''),
+            name: entryDiv.querySelector('.entry-name').value,
+            desc: entryDiv.querySelector('.entry-desc').value
+          });
+      });
+      
+      const favoresOrdem = [];
+       $$('#favoresOrdemList .entry').forEach(entryDiv => {
+        favoresOrdem.push({
+          id: entryDiv.id.replace('favor-entry-', ''),
+          ordem: entryDiv.querySelector('.entry-name').value,
+          nivel: entryDiv.querySelector('.nivelFavor').value,
+          beneficios: entryDiv.querySelector('.entry-desc').value
+        });
       });
 
       const data = {
@@ -1575,8 +1716,8 @@
           velocidade: $('#velocidade').value,
           iniciativa: { bonus: $('#bonusIniciativa').value }
         },
-        classes: [],
-        bencaos: [],
+        classes: classes,
+        bencaos: bencaos,
         ataques: [],
         inventario: {
            dracmas: parseInt($('#dracmas').value) || 0,
@@ -1591,11 +1732,13 @@
         notas: $('#notas').value,
         condicoes: $('#condicoes').value,
         pts_exp_espiritual: $('#pts_exp_espiritual').value,
-        favoresOrdem: [],
+        favoresOrdem: favoresOrdem,
         distribuicao: {
           cfg_pts: $('#cfg_pts').value,
           cfg_bonus6: $('#cfg_bonus6').value,
-          cfg_falha: $('#cfg_falha').value
+          cfg_falha: $('#cfg_falha').value,
+          cfg_override_pts: $('#cfg_override_pts').checked,
+          cfg_manual_pts: $('#cfg_manual_pts').value
         },
         deathSaves: {
             successes: deathSuccesses,
@@ -1619,20 +1762,6 @@
         });
       });
       
-      $$('#classesList .item').forEach(item => {
-        data.classes.push({
-          name: item.querySelector('input').value,
-          desc: item.querySelector('textarea').value
-        });
-      });
-      
-      $$('#bencaosList .item').forEach(item => {
-        data.bencaos.push({
-          name: item.querySelector('input').value,
-          desc: item.querySelector('textarea').value
-        });
-      });
-
       $$('#attacksList .item').forEach(item => {
         const inputs = item.querySelectorAll('input');
         data.ataques.push({
@@ -1649,14 +1778,6 @@
           slots: parseFloat(item.querySelector('.item-slots').value),
           type: item.querySelector('.item-tipo').value,
           quantity: parseInt(item.querySelector('.item-qtd').value)
-        });
-      });
-
-      $$('#favoresOrdemList .item').forEach(item => {
-        data.favoresOrdem.push({
-          ordem: item.querySelector('input').value,
-          nivel: item.querySelector('.nivelFavor').value,
-          beneficios: item.querySelector('textarea').value
         });
       });
       
@@ -1727,6 +1848,9 @@
         $('#cfg_pts').value = data.distribuicao.cfg_pts;
         $('#cfg_bonus6').value = data.distribuicao.cfg_bonus6;
         $('#cfg_falha').value = data.distribuicao.cfg_falha;
+        $('#cfg_override_pts').checked = data.distribuicao.cfg_override_pts || false;
+        $('#cfg_manual_pts').value = data.distribuicao.cfg_manual_pts || 10;
+        $('#cfg_manual_pts').disabled = !$('#cfg_override_pts').checked;
       }
       
       ATTRIBUTES.forEach(attr => {
@@ -1751,10 +1875,10 @@
       if (data.skills) { data.skills.forEach(s => addSkillRow(s.name, s.attr, s.trained, s.specialized, s.extra)); }
       
       $('#classesList').innerHTML = '';
-      if (data.classes) { data.classes.forEach(c => addClasse(c.name, c.desc)); }
+      if (data.classes) { data.classes.forEach(c => addClasse(c.id || generateId(), { name: c.name, desc: c.desc })); }
       
       $('#bencaosList').innerHTML = '';
-      if (data.bencaos) { data.bencaos.forEach(b => addBencao(b.name, b.desc)); }
+      if (data.bencaos) { data.bencaos.forEach(b => addBencao(b.id || generateId(), { name: b.name, desc: b.desc })); }
       
       $('#attacksList').innerHTML = '';
       if (data.ataques) { data.ataques.forEach(a => addAttack(a.name, a.bonus, a.damage, a.type)); }
@@ -1764,7 +1888,7 @@
       if (data.inventario && data.inventario.items) { data.inventario.items.forEach(i => addItem(i.name, i.slots, i.type, i.quantity)); }
 
       $('#favoresOrdemList').innerHTML = '';
-      if (data.favoresOrdem) { data.favoresOrdem.forEach(fo => addFavorOrdem(fo.ordem, fo.nivel, fo.beneficios)); }
+      if (data.favoresOrdem) { data.favoresOrdem.forEach(fo => addFavorOrdem(fo.id || generateId(), { ordem: fo.ordem, nivel: fo.nivel, beneficios: fo.beneficios })); }
 
       if (data.historia && typeof data.historia === 'object') {
         $('#historia_origem').value = data.historia.origem || '';
@@ -1841,7 +1965,9 @@
           distribuicao: {
             cfg_pts: 10,
             cfg_bonus6: 2,
-            cfg_falha: "true"
+            cfg_falha: "true",
+            cfg_override_pts: false,
+            cfg_manual_pts: 10
           },
           deathSaves: {
               successes: 0,
@@ -1924,7 +2050,7 @@
       const url = URL.createObjectURL(blob);
       const a = document.createElement('a');
       a.href = url;
-      const charName = characterData[currentId].nome.replace(/ /g, '_') || 'personagem';
+      const charName = (characterData[currentId].nome || 'personagem').replace(/[\s/\\?%*:|"<>]/g, '_');
       a.download = `${charName}.json`;
       document.body.appendChild(a);
       a.click();
@@ -2027,12 +2153,12 @@
       $('#currentCondition').addEventListener('change', updateConditionEffects);
       
       $('#addSkillBtn').addEventListener('click', addCustomSkill);
-      $('#addClasseBtn').addEventListener('click', () => addClasse()); 
-      $('#addBencaoBtn').addEventListener('click', () => addBencao()); 
+      $('#addClasseBtn').addEventListener('click', () => addClasse(generateId(), { name: '', desc: '' }, true)); 
+      $('#addBencaoBtn').addEventListener('click', () => addBencao(generateId(), { name: '', desc: '' }, true)); 
       $('#addItemBtn').addEventListener('click', () => addItem());
       $('#addAttackBtn').addEventListener('click', () => addAttack());
       $('#rollIniciativaBtn').addEventListener('click', rollIniciativa);
-      $('#addFavorOrdemBtn').addEventListener('click', () => addFavorOrdem());
+      $('#addFavorOrdemBtn').addEventListener('click', () => addFavorOrdem(generateId(), { ordem: '', nivel: 'Aliado', beneficios: '' }, true));
       $('#addCampaignEntryBtn').addEventListener('click', showNewEntryForm);
       $('#cancelNewEntryBtn').addEventListener('click', () => {
           $('#new-campaign-form').style.display = 'none';
@@ -2040,6 +2166,13 @@
       });
       $('#saveNewEntryBtn').addEventListener('click', saveNewEntry);
       
+      $('#cfg_override_pts').addEventListener('change', () => {
+          const manualInput = $('#cfg_manual_pts');
+          manualInput.disabled = !$('#cfg_override_pts').checked;
+          updatePoints(); // Recalculate when mode is switched
+      });
+      $('#cfg_manual_pts').addEventListener('input', updatePoints);
+
       $('#newCharBtn').addEventListener('click', newCharacter);
       $('#dupCharBtn').addEventListener('click', duplicateCharacter);
       $('#delCharBtn').addEventListener('click', deleteCharacter);
