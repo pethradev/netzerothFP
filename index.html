@@ -118,8 +118,8 @@
     .list .item.small{grid-template-columns: 1fr auto}
     .list .item.attack{grid-template-columns: 1.3fr 1fr 1fr 1.2fr auto}
     .list .item.inventory{
-      display: grid; 
-      grid-template-columns: 2fr 1fr 1fr 1fr auto; 
+      display: grid;
+      grid-template-columns: 2fr 1fr 1fr 1fr auto;
       gap: 8px;
       margin-bottom: 8px;
       align-items: center;
@@ -178,7 +178,7 @@
         font-weight: bold;
         margin-top: 8px;
     }
-    
+
     /* Modal/Message Box Styling */
     .modal-overlay {
       position: fixed; top: 0; left: 0; width: 100%; height: 100%;
@@ -206,7 +206,7 @@
       transition: background-color 0.3s ease;
     }
     #autosave-indicator.saved { background-color: var(--ok); }
-    
+
     .status-item {
         margin-bottom: 12px;
         padding: 10px;
@@ -235,9 +235,9 @@
         margin-top: 8px;
     }
     .entry {
-      background:var(--card); 
+      background:var(--card);
       border:1px solid var(--border);
-      border-radius:20px; 
+      border-radius:20px;
       padding:16px;
       margin-bottom: 12px;
     }
@@ -275,6 +275,7 @@
 
     @media (max-width: 980px){
       .attr-grid{grid-template-columns: repeat(3, minmax(0,1fr));}
+      .grid.cols-2{grid-template-columns: repeat(1, minmax(0,1fr));}
       .grid.cols-3{grid-template-columns: repeat(2, minmax(0,1fr));}
       .grid.cols-4{grid-template-columns: repeat(2, minmax(0,1fr));}
       .list .item, .list .item.attack, .list .item.small, .list .item.inventory{grid-template-columns: 1fr !important}
@@ -295,7 +296,7 @@
       .app {
         padding: 0;
       }
-      header.top, .tabs, .footer-actions, .hint, .btn, .controls, .list button, .entry-delete-btn {
+      header.top, .tabs, .footer-actions, .hint, .btn, .controls, .list button, .entry-delete-btn, #addRelacionamentoBtn, #addMemoriaBtn {
         display: none !important;
       }
       .entry-content {
@@ -706,7 +707,7 @@
                   </div>
                 </div>
               </div>
-              
+
               <div class="card" style="margin-top: 12px;">
                 <h3 class="section-title">Nível de Corrupção</h3>
                 <div class="slider-container">
@@ -718,7 +719,7 @@
                 </div>
               </div>
             </div>
-            
+
             <div class="card" style="margin-top: 12px;">
               <h3 class="section-title">⚔️ Ataques</h3>
               <div class="hint" style="margin-bottom: 12px;">
@@ -764,7 +765,7 @@
             </div>
           </div>
         </div>
-        
+
         <div class="grid cols-2" style="margin-top: 12px;">
           <div class="card">
             <h3 class="section-title">📜 Habilidades de Classe</h3>
@@ -779,7 +780,7 @@
             <button class="btn small" id="addBencaoBtn">➕ Nova Bênção</button>
           </div>
         </div>
-        
+
         <div class="grid cols-2" style="margin-top: 12px;">
             <div class="card">
                 <h3 class="section-title">
@@ -803,7 +804,7 @@
                     </ul>
                 </div>
             </div>
-            
+
             <div class="card">
                 <h3 class="section-title">🎲 Testes de Resistência à Morte</h3>
                 <p class="hint">Quando seu PV chega a 0, você faz testes de Vigor para não morrer. Seus sucessos e falhas são contados abaixo.</p>
@@ -867,17 +868,33 @@
       <section class="pane" data-pane="5">
         <div class="grid cols-2">
           <div class="card">
-            <h3 class="section-title">🖋️ História</h3>
+            <h3 class="section-title">🖋️ História & Características</h3>
             <div class="grid">
               <label>Origem<textarea id="historia_origem"></textarea></label>
               <label>Votos ou Propósitos<textarea id="historia_votos"></textarea></label>
-              <label>Relacionamentos Importantes<textarea id="historia_relacionamentos"></textarea></label>
               <label>Eventos Marcantes<textarea id="historia_eventos"></textarea></label>
+
+              <h4 class="section-title" style="margin-top: 12px; margin-bottom: 0;">🎭 Características do Personagem</h4>
+              <label>Físicas<textarea id="caracteristicas_fisicas"></textarea></label>
+              <label>Emocionais<textarea id="caracteristicas_emocionais"></textarea></label>
+              <label>Psicológicas<textarea id="caracteristicas_psicologicas"></textarea></label>
             </div>
           </div>
-          
+
           <div class="card">
-            <h3 class="section-title">📝 Notas & Condições</h3>
+              <h3 class="section-title">🤝 Relacionamentos Importantes</h3>
+              <div id="relacionamentosList">
+                <!-- Conteúdo dinâmico aqui -->
+              </div>
+              <button class="btn small" id="addRelacionamentoBtn">➕ Adicionar Relacionamento</button>
+
+              <h3 class="section-title" style="margin-top: 20px;">🧠 Memórias</h3>
+              <div id="memoriasList">
+                <!-- Conteúdo dinâmico aqui -->
+              </div>
+              <button class="btn small" id="addMemoriaBtn">➕ Adicionar Memória</button>
+            
+            <h3 class="section-title" style="margin-top: 20px;">📝 Notas & Condições</h3>
             <label>Notas de Sessão<textarea id="notas" placeholder="Anotações da aventura."></textarea></label>
             <label style="margin-top: 12px; display: block;">Condições Atuais (separe por vírgula)<textarea id="condicoes" placeholder="ferido, inspirado, corrompido"></textarea></label>
             <details style="margin-top: 12px;">
@@ -891,7 +908,7 @@
               </ul>
             </details>
             <label style="margin-top: 12px; display: block;">Pontos de Experiência Espiritual<input type="number" id="pts_exp_espiritual" min="0" value="0"></label>
-            
+
             <h3 class="section-title" style="margin-top: 20px;">🎲 Histórico de Rolagens</h3>
             <div class="roll-log" id="rollLog"></div>
           </div>
@@ -926,7 +943,7 @@
           <div class="card">
               <h3 class="section-title">📝 Histórico de Campanhas</h3>
               <p class="hint">Use esta seção para registrar o progresso do seu personagem em cada campanha.</p>
-              
+
               <div id="new-campaign-form" class="entry" style="display: none;">
                   <div class="entry-content open">
                       <label>Nome da Campanha<input type="text" id="new-campaign-name"></label>
@@ -940,11 +957,11 @@
                       </div>
                   </div>
               </div>
-              
+
               <div id="campaignHistory">
                   <!-- Entradas de histórico serão adicionadas aqui via JS -->
               </div>
-              
+
               <div class="row">
                   <button class="btn small" id="addCampaignEntryBtn">➕ Adicionar Nova Entrada</button>
               </div>
@@ -981,7 +998,7 @@
         'Inspirado': 'Vantagem no próximo teste.',
         'Amedrontado': 'Desvantagem contra a fonte do medo.'
     };
-    
+
     const regioesLoreData = [
       { name: "Haravoth", desc: "Planícies férteis. Povos nômades e agricultores. Perigos: Invasores e criaturas das sombras. Inspira: Comunidades unidas, coragem simples e sabedoria popular." },
       { name: "Ashkar", desc: "Solo coberto por cinzas eternas. Sobreviventes endurecidos, caçadores de relíquias. Perigos: Tempestades de cinzas, ruínas amaldiçoadas. Inspira: Resistência e superação." },
@@ -1010,7 +1027,7 @@
       { name: "Bênção da Visão", effect: "Revela pontos importantes no ambiente ou sinais ocultos.", duration: "1 vez" },
       { name: "Escudo da Luz", effect: "Absorve até 2 ataques de aliados próximos.", duration: "1 vez" },
     ];
-    
+
     const corrupcaoEffectsData = {
       '0-1': 'Manchas sutis, frio interior, visões breves.',
       '2-3': '–1 em testes sociais com fiéis; tentação ligada a desejo pessoal.',
@@ -1039,11 +1056,11 @@
       const modal = $('#prompt-modal');
       const input = $('#prompt-input');
       const text = $('#prompt-text');
-      
+
       text.textContent = message;
       input.value = defaultValue;
       modal.style.display = 'flex';
-      
+
       return new Promise(resolve => {
         $('#prompt-ok').onclick = () => {
           modal.style.display = 'none';
@@ -1087,7 +1104,7 @@
             bar.style.width = `${Math.min(100, percentage)}%`;
         }
     }
-    
+
     function updateKPI(kpiId) {
       const max = parseInt($(`#max_${kpiId}`).value);
       const cur = parseInt($(`#cur_${kpiId}`).value);
@@ -1126,14 +1143,14 @@
         el.addEventListener("input", () => { calcSkillRowTotal(tr); autoSave(); })
       );
       tr.querySelector(".removeSkill").addEventListener("click", () => { tr.remove(); autoSave(); });
-      
+
       calcSkillRowTotal(tr);
     }
 
     function recalcAllSkills() {
       $$("#skillsTable tbody tr").forEach(tr => calcSkillRowTotal(tr));
     }
-    
+
     function addCustomSkill() {
       addSkillRow("Nova Skill");
       autoSave();
@@ -1198,7 +1215,7 @@
 
         const nameInput = entryDiv.querySelector('.entry-name');
         const title = entryDiv.querySelector('.entry-title');
-        
+
         nameInput.addEventListener('input', () => {
             title.textContent = nameInput.value || 'Nova Bênção/Dom';
             autoSave();
@@ -1214,11 +1231,89 @@
             entryDiv.remove();
             autoSave();
         });
-        
+
         entryDiv.querySelector('.entry-desc').addEventListener('input', autoSave);
     }
 
-    
+    function addRelacionamento(id, data, isOpen = false) {
+        const relacionamentosList = $('#relacionamentosList');
+        const entryDiv = document.createElement('div');
+        entryDiv.id = `relacionamento-entry-${id}`;
+        entryDiv.classList.add('entry');
+        entryDiv.innerHTML = `
+            <div class="entry-header">
+                <h4 class="entry-title">${data.name || 'Novo Relacionamento'}</h4>
+                <button class="btn small destructive entry-delete-btn" data-id="${id}">X</button>
+            </div>
+            <div class="entry-content ${isOpen ? 'open' : ''}" id="relacionamento-content-${id}">
+                <label>Nome<input type="text" class="entry-name" placeholder="Nome da pessoa" value="${data.name}"></label>
+                <label style="margin-top: 8px; display: block;">Descrição<textarea class="entry-desc" placeholder="Descrição do relacionamento">${data.desc}</textarea></label>
+            </div>
+        `;
+        relacionamentosList.appendChild(entryDiv);
+
+        const nameInput = entryDiv.querySelector('.entry-name');
+        const title = entryDiv.querySelector('.entry-title');
+
+        nameInput.addEventListener('input', () => {
+            title.textContent = nameInput.value || 'Novo Relacionamento';
+            autoSave();
+        });
+
+        entryDiv.querySelector('.entry-header').addEventListener('click', (e) => {
+            if (e.target.classList.contains('entry-delete-btn')) return;
+            $(`#relacionamento-content-${id}`).classList.toggle('open');
+        });
+
+        entryDiv.querySelector('.entry-delete-btn').addEventListener('click', (e) => {
+            e.stopPropagation();
+            entryDiv.remove();
+            autoSave();
+        });
+
+        entryDiv.querySelector('.entry-desc').addEventListener('input', autoSave);
+    }
+
+    function addMemoria(id, data, isOpen = false) {
+        const memoriasList = $('#memoriasList');
+        const entryDiv = document.createElement('div');
+        entryDiv.id = `memoria-entry-${id}`;
+        entryDiv.classList.add('entry');
+        entryDiv.innerHTML = `
+            <div class="entry-header">
+                <h4 class="entry-title">${data.name || 'Nova Memória'}</h4>
+                <button class="btn small destructive entry-delete-btn" data-id="${id}">X</button>
+            </div>
+            <div class="entry-content ${isOpen ? 'open' : ''}" id="memoria-content-${id}">
+                <label>Título<input type="text" class="entry-name" placeholder="Título da memória" value="${data.name}"></label>
+                <label style="margin-top: 8px; display: block;">Descrição<textarea class="entry-desc" placeholder="Descrição da memória">${data.desc}</textarea></label>
+            </div>
+        `;
+        memoriasList.appendChild(entryDiv);
+
+        const nameInput = entryDiv.querySelector('.entry-name');
+        const title = entryDiv.querySelector('.entry-title');
+
+        nameInput.addEventListener('input', () => {
+            title.textContent = nameInput.value || 'Nova Memória';
+            autoSave();
+        });
+
+        entryDiv.querySelector('.entry-header').addEventListener('click', (e) => {
+            if (e.target.classList.contains('entry-delete-btn')) return;
+            $(`#memoria-content-${id}`).classList.toggle('open');
+        });
+
+        entryDiv.querySelector('.entry-delete-btn').addEventListener('click', (e) => {
+            e.stopPropagation();
+            entryDiv.remove();
+            autoSave();
+        });
+
+        entryDiv.querySelector('.entry-desc').addEventListener('input', autoSave);
+    }
+
+
     function calculateSlots() {
         let totalSlots = 0;
         const itemRows = document.querySelectorAll('#itemsList .list.item.inventory');
@@ -1267,7 +1362,7 @@
         const currentType = itemDiv.querySelector('.item-tipo').value;
         if (currentType === 'miudeza') {
             itemDiv.querySelector('.item-slots').value = 0.2;
-        } else if (itemDiv.querySelector('.item-slots').value == 0.2) { 
+        } else if (itemDiv.querySelector('.item-slots').value == 0.2) {
              itemDiv.querySelector('.item-slots').value = 1;
         }
         calculateSlots();
@@ -1303,15 +1398,15 @@
       attackDiv.querySelector(".remove-item").addEventListener("click", () => { attackDiv.remove(); autoSave(); });
       autoSave();
     }
-    
+
     function updatePoints() {
       const cfg_override = $('#cfg_override_pts').checked;
-      
+
       if (cfg_override) {
           const manual_pts = parseInt($('#cfg_manual_pts').value) || 0;
           $('#pontosRestantes').textContent = manual_pts;
           $('#requisitoFalha').style.display = 'none';
-          return; 
+          return;
       }
 
       const cfg_pts = parseInt($('#cfg_pts').value) || 0;
@@ -1334,7 +1429,7 @@
           spentPoints += (val - 10);
         }
       });
-      
+
       let bonusPoints = has6 ? cfg_bonus6 : 0;
       let remainingPoints = cfg_pts + bonusPoints - spentPoints;
 
@@ -1359,7 +1454,7 @@
         showMessageBox(`O atributo deve estar entre ${MIN_ATTR} e ${MAX_ATTR}.`);
         return;
       }
-      
+
       attrEl.dataset.val = newVal;
       attrEl.textContent = newVal;
 
@@ -1368,8 +1463,8 @@
 
       updatePoints();
       recalcAllSkills();
-      updateIniciativa(); 
-      calculateSlots(); 
+      updateIniciativa();
+      calculateSlots();
       autoSave();
     }
 
@@ -1379,7 +1474,7 @@
       const effectsDiv = $('#corrupcaoEffects');
       const corrupcaoValue = parseInt(slider.value);
       valueDisplay.textContent = `${corrupcaoValue} / ${slider.max}`;
-      
+
       let currentEffect = '';
       if (corrupcaoValue >= 0 && corrupcaoValue <= 1) {
         currentEffect = corrupcaoEffectsData['0-1'];
@@ -1414,7 +1509,7 @@
       rollLog.prepend(newRoll);
       autoSave();
     }
-    
+
     function atualizarEspecie() {
       const especie = $('#especie').value;
       const infoDiv = $('#infoEspecie');
@@ -1471,7 +1566,7 @@
 
         const nameInput = entryDiv.querySelector('.entry-name');
         const title = entryDiv.querySelector('.entry-title');
-        
+
         nameInput.addEventListener('input', () => {
             title.textContent = nameInput.value || 'Novo Favor de Ordem';
             autoSave();
@@ -1487,10 +1582,10 @@
             entryDiv.remove();
             autoSave();
         });
-        
+
         entryDiv.querySelectorAll('select, textarea').forEach(el => el.addEventListener('input', autoSave));
     }
-    
+
     function updateConditionEffects() {
         const condition = $('#currentCondition').value;
         const effectsList = $('#conditionEffects');
@@ -1498,7 +1593,7 @@
         effectsList.innerHTML = effectsHTML;
         autoSave();
     }
-    
+
     // --- Death Saves ---
     let deathSuccesses = 0;
     let deathFails = 0;
@@ -1508,27 +1603,27 @@
         $('#deathSavesFail').textContent = deathFails;
         autoSave();
     }
-    
+
     function resetDeathSaves() {
         deathSuccesses = 0;
         deathFails = 0;
         updateDeathSaves();
         showMessageBox("Testes de morte resetados.");
     }
-    
+
     function rollDeathSave() {
       if (parseInt($('#cur_pv').value) > 0) {
           showMessageBox("Você não precisa rolar um teste de morte, pois seus PVs estão acima de 0.");
           return;
       }
-      
+
       const roll = Math.floor(Math.random() * 20) + 1;
       $('#deathRoll').textContent = roll;
-      
+
       const logText = `Teste de Morte: D20(${roll})`;
       const rollLog = $('#rollLog');
       const newRoll = document.createElement('div');
-      
+
       if (roll >= 10) {
         deathSuccesses += (roll === 20) ? 2 : 1;
         newRoll.textContent = `${logText} -> Sucesso! (${deathSuccesses} sucesso(s) acumulados)`;
@@ -1538,9 +1633,9 @@
         newRoll.textContent = `${logText} -> Falha! (${deathFails} falha(s) acumuladas)`;
         newRoll.classList.add('danger');
       }
-      
+
       rollLog.prepend(newRoll);
-      
+
       if (deathSuccesses >= 3) {
         showMessageBox("Você está estabilizado e seguro (por enquanto)!");
         resetDeathSaves();
@@ -1565,9 +1660,9 @@
       const entryDiv = document.createElement('div');
       entryDiv.id = `entry-${id}`;
       entryDiv.classList.add('entry');
-      
+
       const displayDate = formatDateForDisplay(data.date);
-      
+
       entryDiv.innerHTML = `
           <div class="entry-header">
               <h4>${data.campaignName || 'Nova Campanha'} - ${displayDate}</h4>
@@ -1581,12 +1676,12 @@
               <label>Como a História o Evoluiu<textarea class="character-evolution" placeholder="O que seu personagem aprendeu, ganhou ou mudou?">${data.evolution || ''}</textarea></label>
           </div>
       `;
-      
+
       historyContainer.prepend(entryDiv);
-      
+
       const deleteButton = entryDiv.querySelector('.entry-delete-btn');
       deleteButton.addEventListener('click', (e) => {
-          e.stopPropagation(); 
+          e.stopPropagation();
           deleteCampaignEntry(id);
       });
 
@@ -1598,12 +1693,12 @@
 
       entryDiv.querySelectorAll('input, textarea').forEach(el => el.addEventListener('input', autoSave));
     }
-    
+
     function showNewEntryForm() {
         const form = $('#new-campaign-form');
         form.style.display = 'block';
         $('#addCampaignEntryBtn').style.display = 'none';
-        
+
         $('#new-campaign-name').value = '';
         $('#new-campaign-date').value = new Date().toISOString().substring(0, 10);
         $('#new-campaign-summary').value = '';
@@ -1621,7 +1716,7 @@
             contribution: $('#new-character-contribution').value,
             evolution: $('#new-character-evolution').value
         };
-        
+
         if (!newEntry.campaignName) {
             showMessageBox("O nome da campanha é obrigatório.");
             return;
@@ -1631,12 +1726,12 @@
             characterData[currentId].campaignHistory = [];
         }
         characterData[currentId].campaignHistory.push(newEntry);
-        
+
         addCampaignEntry(id, newEntry, false);
-        
+
         $('#new-campaign-form').style.display = 'none';
         $('#addCampaignEntryBtn').style.display = 'flex';
-        
+
         autoSave();
     }
 
@@ -1666,7 +1761,7 @@
               evolution: entryDiv.querySelector('.character-evolution').value
           });
       });
-      
+
       const classes = [];
        $$('#classesList .entry').forEach(entryDiv => {
           classes.push({
@@ -1684,7 +1779,25 @@
             desc: entryDiv.querySelector('.entry-desc').value
           });
       });
-      
+
+      const relacionamentos = [];
+       $$('#relacionamentosList .entry').forEach(entryDiv => {
+          relacionamentos.push({
+            id: entryDiv.id.replace('relacionamento-entry-', ''),
+            name: entryDiv.querySelector('.entry-name').value,
+            desc: entryDiv.querySelector('.entry-desc').value
+          });
+      });
+
+      const memorias = [];
+       $$('#memoriasList .entry').forEach(entryDiv => {
+          memorias.push({
+            id: entryDiv.id.replace('memoria-entry-', ''),
+            name: entryDiv.querySelector('.entry-name').value,
+            desc: entryDiv.querySelector('.entry-desc').value
+          });
+      });
+
       const favoresOrdem = [];
        $$('#favoresOrdemList .entry').forEach(entryDiv => {
         favoresOrdem.push({
@@ -1726,8 +1839,14 @@
         historia: {
             origem: $('#historia_origem').value,
             votos: $('#historia_votos').value,
-            relacionamentos: $('#historia_relacionamentos').value,
             eventos: $('#historia_eventos').value,
+            caracteristicas: {
+                fisicas: $('#caracteristicas_fisicas').value,
+                emocionais: $('#caracteristicas_emocionais').value,
+                psicologicas: $('#caracteristicas_psicologicas').value
+            },
+            relacionamentos: relacionamentos,
+            memorias: memorias,
         },
         notas: $('#notas').value,
         condicoes: $('#condicoes').value,
@@ -1761,7 +1880,7 @@
           extra: parseInt(row.querySelector('.extra').value) || 0
         });
       });
-      
+
       $$('#attacksList .item').forEach(item => {
         const inputs = item.querySelectorAll('input');
         data.ataques.push({
@@ -1771,7 +1890,7 @@
           type: inputs[3].value
         });
       });
-      
+
       $$('#itemsList .item.inventory').forEach(item => {
         data.inventario.items.push({
           name: item.querySelector('.item-nome').value,
@@ -1780,10 +1899,10 @@
           quantity: parseInt(item.querySelector('.item-qtd').value)
         });
       });
-      
+
       characterData[currentId] = data;
       localStorage.setItem('characterData', JSON.stringify(characterData));
-      
+
       const option = $(`#characterSelect option[value="${currentId}"]`);
       if (option) {
         option.textContent = data.nome || `Personagem ${currentId.substring(0, 5)}`;
@@ -1816,7 +1935,7 @@
       $('#alinhamento').value = data.alinhamento || 'Fiel';
       $('#regiaoOrigem').value = data.regiaoOrigem || '';
       $('#talentoRegional').value = data.talentoRegional || '';
-      
+
       if (data.recursos) {
           const rec = data.recursos;
           if (rec.pv) {
@@ -1836,7 +1955,7 @@
             $('#max_xp').value = rec.xp.max || 1000;
           }
           $('#corrupcaoSlider').value = rec.corrupcao || 0;
-          updateCorrupcao(); 
+          updateCorrupcao();
           $('#velocidade').value = rec.velocidade || 9;
           if (rec.iniciativa) {
             $('#bonusIniciativa').value = rec.iniciativa.bonus || 0;
@@ -1852,7 +1971,7 @@
         $('#cfg_manual_pts').value = data.distribuicao.cfg_manual_pts || 10;
         $('#cfg_manual_pts').disabled = !$('#cfg_override_pts').checked;
       }
-      
+
       ATTRIBUTES.forEach(attr => {
         const val = data.atributos[attr] || 10;
         const attrEl = $(`#val_${attr}`);
@@ -1861,46 +1980,73 @@
         const mod = getAttrMod(attr);
         $(`#mod_${attr}`).textContent = `mod ${mod > 0 ? '+' : ''}${mod}`;
       });
-      
+
       if (data.deathSaves) {
           deathSuccesses = data.deathSaves.successes || 0;
           deathFails = data.deathSaves.fails || 0;
           updateDeathSaves();
       }
-      
+
       $('#currentCondition').value = data.currentCondition || 'Saudável';
       updateConditionEffects();
 
       $('#skillsBody').innerHTML = '';
       if (data.skills) { data.skills.forEach(s => addSkillRow(s.name, s.attr, s.trained, s.specialized, s.extra)); }
-      
+
       $('#classesList').innerHTML = '';
       if (data.classes) { data.classes.forEach(c => addClasse(c.id || generateId(), { name: c.name, desc: c.desc })); }
-      
+
       $('#bencaosList').innerHTML = '';
       if (data.bencaos) { data.bencaos.forEach(b => addBencao(b.id || generateId(), { name: b.name, desc: b.desc })); }
-      
+
       $('#attacksList').innerHTML = '';
       if (data.ataques) { data.ataques.forEach(a => addAttack(a.name, a.bonus, a.damage, a.type)); }
-      
+
       $('#itemsList').innerHTML = '';
-        $('#dracmas').value = data.inventario.dracmas || 0;
+        $('#dracmas').value = (data.inventario && data.inventario.dracmas) || 0;
       if (data.inventario && data.inventario.items) { data.inventario.items.forEach(i => addItem(i.name, i.slots, i.type, i.quantity)); }
 
       $('#favoresOrdemList').innerHTML = '';
       if (data.favoresOrdem) { data.favoresOrdem.forEach(fo => addFavorOrdem(fo.id || generateId(), { ordem: fo.ordem, nivel: fo.nivel, beneficios: fo.beneficios })); }
 
+      // --- NEW/UPDATED HISTORY SECTION ---
+      $('#relacionamentosList').innerHTML = '';
+      $('#memoriasList').innerHTML = '';
+
       if (data.historia && typeof data.historia === 'object') {
         $('#historia_origem').value = data.historia.origem || '';
         $('#historia_votos').value = data.historia.votos || '';
-        $('#historia_relacionamentos').value = data.historia.relacionamentos || '';
         $('#historia_eventos').value = data.historia.eventos || '';
-      } else {
+
+        if(data.historia.caracteristicas) {
+            $('#caracteristicas_fisicas').value = data.historia.caracteristicas.fisicas || '';
+            $('#caracteristicas_emocionais').value = data.historia.caracteristicas.emocionais || '';
+            $('#caracteristicas_psicologicas').value = data.historia.caracteristicas.psicologicas || '';
+        } else {
+            $('#caracteristicas_fisicas').value = '';
+            $('#caracteristicas_emocionais').value = '';
+            $('#caracteristicas_psicologicas').value = '';
+        }
+
+        if (typeof data.historia.relacionamentos === 'string' && data.historia.relacionamentos) {
+          addRelacionamento(generateId(), { name: 'Notas de Relacionamentos (Antigo)', desc: data.historia.relacionamentos }, false);
+        } else if (data.historia.relacionamentos && Array.isArray(data.historia.relacionamentos)) {
+          data.historia.relacionamentos.forEach(r => addRelacionamento(r.id || generateId(), { name: r.name, desc: r.desc }, false));
+        }
+
+        if (data.historia.memorias && Array.isArray(data.historia.memorias)) {
+          data.historia.memorias.forEach(m => addMemoria(m.id || generateId(), { name: m.name, desc: m.desc }, false));
+        }
+
+      } else { // Handle very old data format where 'historia' was just a string
         $('#historia_origem').value = data.historia || '';
         $('#historia_votos').value = '';
-        $('#historia_relacionamentos').value = '';
         $('#historia_eventos').value = '';
+        $('#caracteristicas_fisicas').value = '';
+        $('#caracteristicas_emocionais').value = '';
+        $('#caracteristicas_psicologicas').value = '';
       }
+
       $('#notas').value = data.notas || '';
       $('#condicoes').value = data.condicoes || '';
       $('#pts_exp_espiritual').value = data.pts_exp_espiritual || 0;
@@ -1910,7 +2056,7 @@
           data.campaignHistory.sort((a, b) => new Date(b.date) - new Date(a.date));
           data.campaignHistory.forEach(entry => addCampaignEntry(entry.id, entry, false));
       }
-      
+
       updatePoints();
       calculateSlots();
       recalcAllSkills();
@@ -1955,8 +2101,14 @@
           historia: {
               origem: "",
               votos: "",
-              relacionamentos: "",
-              eventos: ""
+              eventos: "",
+              caracteristicas: {
+                  fisicas: "",
+                  emocionais: "",
+                  psicologicas: ""
+              },
+              relacionamentos: [],
+              memorias: []
           },
           notas: "",
           condicoes: "",
@@ -2001,11 +2153,11 @@
         const newId = generateId();
         characterData[newId] = resetCharacterData();
         currentId = newId;
-        
+
         loadCharacter(currentId);
         updateCharacterList();
         saveCharacter();
-        
+
         showMessageBox("Nova ficha criada!");
     }
 
@@ -2030,7 +2182,7 @@
         return;
       }
       const confirmation = await showConfirmBox("Tem certeza que deseja excluir esta ficha? Esta ação não pode ser desfeita.");
-      
+
       if (confirmation) {
         delete characterData[currentId];
         const newId = Object.keys(characterData)[0];
@@ -2043,7 +2195,7 @@
         showMessageBox("Ficha excluída com sucesso.");
       }
     }
-    
+
     function exportCurrent() {
       const dataStr = JSON.stringify(characterData[currentId], null, 2);
       const blob = new Blob([dataStr], {type: "application/json"});
@@ -2058,7 +2210,7 @@
       URL.revokeObjectURL(url);
       showMessageBox("Ficha exportada como JSON.");
     }
-    
+
     function isObject(item) {
         return (item && typeof item === 'object' && !Array.isArray(item));
     }
@@ -2079,7 +2231,7 @@
         }
         return deepMerge(target, ...sources);
     }
-    
+
     function importFrom(file) {
       if (!file) return;
       const reader = new FileReader();
@@ -2089,24 +2241,24 @@
           const newId = generateId();
 
           const defaultSheet = resetCharacterData();
-          
+
           const finalSheet = deepMerge(defaultSheet, importedData);
-          
+
           if (typeof importedData.historia === 'string') {
               finalSheet.historia.origem = importedData.historia;
           }
 
           characterData[newId] = finalSheet;
           currentId = newId;
-          
+
           updateCharacterList();
-          
+
           loadCharacter(currentId);
-          
+
           saveCharacter();
-          
+
           showMessageBox("Ficha importada com sucesso!");
-          
+
         } catch (error) {
           console.error("Erro na importação:", error);
           showMessageBox("Erro ao importar o arquivo. Verifique se é um arquivo JSON válido e compatível.");
@@ -2119,7 +2271,7 @@
       await showMessageBox("Para salvar a ficha como PDF, selecione 'Salvar como PDF' na lista de impressoras do seu navegador após a janela de impressão ser aberta.");
       window.print();
     }
-    
+
     function setEventListeners() {
       $$('input, textarea, select').forEach(el => {
         el.addEventListener('input', autoSave);
@@ -2134,27 +2286,29 @@
       }));
 
       $$('#attrGrid .btn').forEach(btn => btn.addEventListener('click', handleAttrChange));
-      
+
       $$('#cur_pv, #max_pv').forEach(input => input.addEventListener('input', () => updateKPI('pv')));
       $$('#cur_pe, #max_pe').forEach(input => input.addEventListener('input', () => updateKPI('pe')));
       $$('#cur_pa, #max_pa').forEach(input => input.addEventListener('input', () => updateKPI('pa')));
       $$('#cur_xp, #max_xp').forEach(input => input.addEventListener('input', () => updateKPI('xp')));
-      
+
       $('#corrupcaoSlider').addEventListener('input', updateCorrupcao);
       $('#bonusIniciativa').addEventListener('input', updateIniciativa);
-      
+
       $('#addDeathSuccess').addEventListener('click', () => { deathSuccesses++; updateDeathSaves(); });
       $('#minusDeathSuccess').addEventListener('click', () => { if (deathSuccesses > 0) deathSuccesses--; updateDeathSaves(); });
       $('#addDeathFail').addEventListener('click', () => { deathFails++; updateDeathSaves(); });
       $('#minusDeathFail').addEventListener('click', () => { if (deathFails > 0) deathFails--; updateDeathSaves(); });
       $('#rollDeathSaveBtn').addEventListener('click', rollDeathSave);
       $('#resetDeathSavesBtn').addEventListener('click', resetDeathSaves);
-      
+
       $('#currentCondition').addEventListener('change', updateConditionEffects);
-      
+
       $('#addSkillBtn').addEventListener('click', addCustomSkill);
-      $('#addClasseBtn').addEventListener('click', () => addClasse(generateId(), { name: '', desc: '' }, true)); 
-      $('#addBencaoBtn').addEventListener('click', () => addBencao(generateId(), { name: '', desc: '' }, true)); 
+      $('#addClasseBtn').addEventListener('click', () => addClasse(generateId(), { name: '', desc: '' }, true));
+      $('#addBencaoBtn').addEventListener('click', () => addBencao(generateId(), { name: '', desc: '' }, true));
+      $('#addRelacionamentoBtn').addEventListener('click', () => addRelacionamento(generateId(), { name: '', desc: '' }, true));
+      $('#addMemoriaBtn').addEventListener('click', () => addMemoria(generateId(), { name: '', desc: '' }, true));
       $('#addItemBtn').addEventListener('click', () => addItem());
       $('#addAttackBtn').addEventListener('click', () => addAttack());
       $('#rollIniciativaBtn').addEventListener('click', rollIniciativa);
@@ -2165,7 +2319,7 @@
           $('#addCampaignEntryBtn').style.display = 'flex';
       });
       $('#saveNewEntryBtn').addEventListener('click', saveNewEntry);
-      
+
       $('#cfg_override_pts').addEventListener('change', () => {
           const manualInput = $('#cfg_manual_pts');
           manualInput.disabled = !$('#cfg_override_pts').checked;
@@ -2224,14 +2378,14 @@
         currentId = newId;
         localStorage.setItem('characterData', JSON.stringify(characterData));
       }
-      
+
       updateCharacterList();
       loadCharacter(currentId);
       setEventListeners();
       autoSave();
       populateLoreSections();
     }
-    
+
     window.onload = init;
   </script>
 </body>
