@@ -272,6 +272,42 @@
         margin-left: auto;
         flex-shrink: 0;
     }
+    .gallery-container {
+        display: grid;
+        grid-template-columns: repeat(auto-fill, minmax(120px, 1fr));
+        gap: 10px;
+        margin-top: 12px;
+    }
+    .gallery-item {
+        position: relative;
+        border-radius: 12px;
+        overflow: hidden;
+        border: 1px solid var(--border);
+    }
+    .gallery-item img {
+        width: 100%;
+        height: 215px;
+        object-fit: cover;
+        display: block;
+    }
+    .delete-img-btn {
+        position: absolute;
+        top: 4px;
+        right: 4px;
+        background: rgba(0,0,0,0.6);
+        color: white;
+        border: none;
+        border-radius: 50%;
+        width: 24px;
+        height: 24px;
+        cursor: pointer;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        font-weight: bold;
+        line-height: 1;
+    }
+
 
     @media (max-width: 980px){
       .attr-grid{grid-template-columns: repeat(3, minmax(0,1fr));}
@@ -296,7 +332,7 @@
       .app {
         padding: 0;
       }
-      header.top, .tabs, .footer-actions, .hint, .btn, .controls, .list button, .entry-delete-btn, #addRelacionamentoBtn, #addMemoriaBtn {
+      header.top, .tabs, .footer-actions, .hint, .btn, .controls, .list button, .entry-delete-btn, #addRelacionamentoBtn, #addMemoriaBtn, #addImageBtn, .delete-img-btn {
         display: none !important;
       }
       .entry-content {
@@ -876,8 +912,7 @@
 
               <h4 class="section-title" style="margin-top: 12px; margin-bottom: 0;">🎭 Características do Personagem</h4>
               <label>Físicas<textarea id="caracteristicas_fisicas"></textarea></label>
-              <label>Emocionais<textarea id="caracteristicas_emocionais"></textarea></label>
-              <label>Psicológicas<textarea id="caracteristicas_psicologicas"></textarea></label>
+              <label>Emocionais & Psicológicas<textarea id="caracteristicas_emocionais_psicologicas"></textarea></label>
             </div>
           </div>
 
@@ -893,6 +928,15 @@
                 <!-- Conteúdo dinâmico aqui -->
               </div>
               <button class="btn small" id="addMemoriaBtn">➕ Adicionar Memória</button>
+
+              <h3 class="section-title" style="margin-top: 20px;">🖼️ Galeria do Personagem</h3>
+                <div class="row">
+                    <label for="imageFileInput" class="btn small primary">Carregar Imagem</label>
+                    <input type="file" id="imageFileInput" accept="image/*" class="hidden">
+                </div>
+                <div id="galleryContainer" class="gallery-container">
+                    <!-- Imagens adicionadas via JS -->
+                </div>
             
             <h3 class="section-title" style="margin-top: 20px;">📝 Notas & Condições</h3>
             <label>Notas de Sessão<textarea id="notas" placeholder="Anotações da aventura."></textarea></label>
@@ -1311,6 +1355,31 @@
         });
 
         entryDiv.querySelector('.entry-desc').addEventListener('input', autoSave);
+    }
+
+    function addImageToGallery(url) {
+        const galleryContainer = $('#galleryContainer');
+        const item = document.createElement('div');
+        item.className = 'gallery-item';
+        
+        const img = document.createElement('img');
+        img.src = url;
+        img.alt = 'Imagem do personagem';
+        img.onerror = function() {
+            this.src = 'https://placehold.co/200x200/111623/eaeefb?text=Erro';
+        };
+
+        const deleteBtn = document.createElement('button');
+        deleteBtn.className = 'delete-img-btn';
+        deleteBtn.innerHTML = '&times;';
+        deleteBtn.onclick = () => {
+            item.remove();
+            autoSave();
+        };
+
+        item.appendChild(img);
+        item.appendChild(deleteBtn);
+        galleryContainer.appendChild(item);
     }
 
 
@@ -1807,6 +1876,13 @@
           beneficios: entryDiv.querySelector('.entry-desc').value
         });
       });
+      
+      const galeria = [];
+        $$('#galleryContainer .gallery-item img').forEach(img => {
+            if (!img.src.includes('placehold.co')) {
+                galeria.push(img.src);
+            }
+        });
 
       const data = {
         nome: $('#nome').value,
@@ -1842,12 +1918,12 @@
             eventos: $('#historia_eventos').value,
             caracteristicas: {
                 fisicas: $('#caracteristicas_fisicas').value,
-                emocionais: $('#caracteristicas_emocionais').value,
-                psicologicas: $('#caracteristicas_psicologicas').value
+                emocionais_psicologicas: $('#caracteristicas_emocionais_psicologicas').value
             },
             relacionamentos: relacionamentos,
             memorias: memorias,
         },
+        galeria: galeria,
         notas: $('#notas').value,
         condicoes: $('#condicoes').value,
         pts_exp_espiritual: $('#pts_exp_espiritual').value,
@@ -2020,12 +2096,16 @@
 
         if(data.historia.caracteristicas) {
             $('#caracteristicas_fisicas').value = data.historia.caracteristicas.fisicas || '';
-            $('#caracteristicas_emocionais').value = data.historia.caracteristicas.emocionais || '';
-            $('#caracteristicas_psicologicas').value = data.historia.caracteristicas.psicologicas || '';
+            if (data.historia.caracteristicas.emocionais_psicologicas) {
+                 $('#caracteristicas_emocionais_psicologicas').value = data.historia.caracteristicas.emocionais_psicologicas;
+            } else {
+                 const emocionais = data.historia.caracteristicas.emocionais || '';
+                 const psicologicas = data.historia.caracteristicas.psicologicas || '';
+                 $('#caracteristicas_emocionais_psicologicas').value = [emocionais, psicologicas].filter(Boolean).join('\n\n');
+            }
         } else {
             $('#caracteristicas_fisicas').value = '';
-            $('#caracteristicas_emocionais').value = '';
-            $('#caracteristicas_psicologicas').value = '';
+            $('#caracteristicas_emocionais_psicologicas').value = '';
         }
 
         if (typeof data.historia.relacionamentos === 'string' && data.historia.relacionamentos) {
@@ -2043,8 +2123,12 @@
         $('#historia_votos').value = '';
         $('#historia_eventos').value = '';
         $('#caracteristicas_fisicas').value = '';
-        $('#caracteristicas_emocionais').value = '';
-        $('#caracteristicas_psicologicas').value = '';
+        $('#caracteristicas_emocionais_psicologicas').value = '';
+      }
+
+      $('#galleryContainer').innerHTML = '';
+      if (data.galeria && Array.isArray(data.galeria)) {
+          data.galeria.forEach(url => addImageToGallery(url));
       }
 
       $('#notas').value = data.notas || '';
@@ -2104,12 +2188,12 @@
               eventos: "",
               caracteristicas: {
                   fisicas: "",
-                  emocionais: "",
-                  psicologicas: ""
+                  emocionais_psicologicas: ""
               },
               relacionamentos: [],
               memorias: []
           },
+          galeria: [],
           notas: "",
           condicoes: "",
           pts_exp_espiritual: 0,
@@ -2319,6 +2403,25 @@
           $('#addCampaignEntryBtn').style.display = 'flex';
       });
       $('#saveNewEntryBtn').addEventListener('click', saveNewEntry);
+      
+      $('#imageFileInput').addEventListener('change', (event) => {
+        const file = event.target.files[0];
+        if (file) {
+            if (file.size > 2 * 1024 * 1024) { // 2MB limit
+                showMessageBox('A imagem é muito grande. Por favor, escolha uma imagem menor que 2MB.');
+                event.target.value = ''; // Reset the input
+                return;
+            }
+            const reader = new FileReader();
+            reader.onload = (e) => {
+                const dataUrl = e.target.result;
+                addImageToGallery(dataUrl);
+                autoSave();
+            };
+            reader.readAsDataURL(file);
+            event.target.value = ''; // Reset the input so the same file can be re-uploaded
+        }
+      });
 
       $('#cfg_override_pts').addEventListener('change', () => {
           const manualInput = $('#cfg_manual_pts');
@@ -2390,3 +2493,4 @@
   </script>
 </body>
 </html>
+
