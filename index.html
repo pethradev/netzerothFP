@@ -332,7 +332,7 @@
       .app {
         padding: 0;
       }
-      header.top, .tabs, .footer-actions, .hint, .btn, .controls, .list button, .entry-delete-btn, #addRelacionamentoBtn, #addMemoriaBtn, #addImageBtn, .delete-img-btn {
+      header.top, .tabs, .footer-actions, .hint, .btn, .controls, .list button, .entry-delete-btn, #addRelacionamentoBtn, #addMemoriaBtn, #addImageBtn, .delete-img-btn, #addFavorOrdemBtn, #addFavorRegiaoBtn {
         display: none !important;
       }
       .entry-content {
@@ -975,6 +975,13 @@
             </div>
             <button class="btn small" id="addFavorOrdemBtn">➕ Adicionar Favor de Ordem</button>
 
+            <h3 class="section-title" style="margin-top: 20px;">🌍 Favores de Região</h3>
+            <p class="hint">Monitore sua reputação com as diferentes regiões de Netzeroth.</p>
+            <div id="favoresRegiaoList">
+              <!-- Favores de Região serão adicionados aqui via JS -->
+            </div>
+            <button class="btn small" id="addFavorRegiaoBtn">➕ Adicionar Favor de Região</button>
+
             <h3 class="section-title" style="margin-top: 20px;">✨ Bênçãos Comuns de Elyon</h3>
             <div class="grid" id="bencaosComunsLore">
               <!-- Conteúdo da lore de bênçãos comuns será injetado aqui via JS -->
@@ -1393,7 +1400,7 @@
             const quantidade = parseInt(quantidadeInput.value) || 0;
             totalSlots += slots * quantidade;
         });
-        $('#slotsOcupados').textContent = totalSlots;
+        $('#slotsOcupados').textContent = parseFloat(totalSlots.toFixed(2));
 
         const vig = parseInt($(`#val_VIG`).dataset.val);
         const maxSlots = vig * 5;
@@ -1609,26 +1616,35 @@
       autoSave();
     }
 
+    const favorLevelsHTML = (selectedLevel) => `
+        <option value="Inimigo" ${selectedLevel === 'Inimigo' ? 'selected' : ''}>Inimigo</option>
+        <option value="Concorrente" ${selectedLevel === 'Concorrente' ? 'selected' : ''}>Concorrente</option>
+        <option value="Neutro" ${selectedLevel === 'Neutro' ? 'selected' : ''}>Neutro</option>
+        <option value="Aliado" ${selectedLevel === 'Aliado' ? 'selected' : ''}>Aliado</option>
+        <option value="Confidente" ${selectedLevel === 'Confidente' ? 'selected' : ''}>Confidente</option>
+        <option value="Emissário" ${selectedLevel === 'Emissário' ? 'selected' : ''}>Emissário</option>
+        <option value="Herói" ${selectedLevel === 'Herói' ? 'selected' : ''}>Herói</option>
+        <option value="Lenda" ${selectedLevel === 'Lenda' ? 'selected' : ''}>Lenda</option>
+    `;
+
     function addFavorOrdem(id, data, isOpen = false) {
         const favoresOrdemList = $('#favoresOrdemList');
         const entryDiv = document.createElement('div');
-        entryDiv.id = `favor-entry-${id}`;
+        entryDiv.id = `favor-ordem-entry-${id}`;
         entryDiv.classList.add('entry');
         entryDiv.innerHTML = `
             <div class="entry-header">
                 <h4 class="entry-title">${data.ordem || 'Novo Favor de Ordem'}</h4>
                 <button class="btn small destructive entry-delete-btn" data-id="${id}">X</button>
             </div>
-            <div class="entry-content ${isOpen ? 'open' : ''}" id="favor-content-${id}">
-                <label>Ordem<input type="text" class="entry-name" placeholder="Nome da Ordem" value="${data.ordem}"></label>
+            <div class="entry-content ${isOpen ? 'open' : ''}" id="favor-ordem-content-${id}">
+                <label>Ordem<input type="text" class="entry-name" placeholder="Nome da Ordem" value="${data.ordem || ''}"></label>
                 <label style="margin-top: 8px; display: block;">Nível de Favor
                     <select class="nivelFavor">
-                        <option value="Aliado" ${data.nivel === 'Aliado' ? 'selected' : ''}>Aliado (+2 em 1 teste ligado à Ordem/sessão)</option>
-                        <option value="Confidente" ${data.nivel === 'Confidente' ? 'selected' : ''}>Confidente (Recursos/contatos, converter falha em sucesso/sessão)</option>
-                        <option value="Emissário" ${data.nivel === 'Emissário' ? 'selected' : ''}>Emissário (Pede grupo de apoio ou perdão social/sessão)</option>
+                        ${favorLevelsHTML(data.nivel)}
                     </select>
                 </label>
-                <label style="margin-top: 8px; display: block;">Benefícios Adicionais<textarea class="entry-desc" placeholder="Benefícios específicos ou observações">${data.beneficios}</textarea></label>
+                <label style="margin-top: 8px; display: block;">Benefícios / Motivos<textarea class="entry-desc" placeholder="Benefícios específicos, motivos ou observações">${data.beneficios || ''}</textarea></label>
             </div>
         `;
         favoresOrdemList.appendChild(entryDiv);
@@ -1643,7 +1659,7 @@
 
         entryDiv.querySelector('.entry-header').addEventListener('click', (e) => {
             if (e.target.classList.contains('entry-delete-btn')) return;
-            $(`#favor-content-${id}`).classList.toggle('open');
+            $(`#favor-ordem-content-${id}`).classList.toggle('open');
         });
 
         entryDiv.querySelector('.entry-delete-btn').addEventListener('click', (e) => {
@@ -1653,6 +1669,50 @@
         });
 
         entryDiv.querySelectorAll('select, textarea').forEach(el => el.addEventListener('input', autoSave));
+    }
+
+    function addFavorRegiao(id, data, isOpen = false) {
+        const favoresRegiaoList = $('#favoresRegiaoList');
+        const entryDiv = document.createElement('div');
+        entryDiv.id = `favor-regiao-entry-${id}`;
+        entryDiv.classList.add('entry');
+        entryDiv.innerHTML = `
+            <div class="entry-header">
+                <h4 class="entry-title">${data.regiao || 'Novo Favor de Região'}</h4>
+                <button class="btn small destructive entry-delete-btn" data-id="${id}">X</button>
+            </div>
+            <div class="entry-content ${isOpen ? 'open' : ''}" id="favor-regiao-content-${id}">
+                <label>Região<input type="text" class="entry-name" placeholder="Nome da Região" value="${data.regiao || ''}"></label>
+                <label style="margin-top: 8px; display: block;">Nível de Favor
+                    <select class="nivelFavor">
+                        ${favorLevelsHTML(data.nivel)}
+                    </select>
+                </label>
+                <label style="margin-top: 8px; display: block;">Motivo / Eventos<textarea class="entry-desc" placeholder="O que aconteceu para atingir este nível de favor?">${data.motivo || ''}</textarea></label>
+            </div>
+        `;
+        favoresRegiaoList.appendChild(entryDiv);
+
+        const nameInput = entryDiv.querySelector('.entry-name');
+        const title = entryDiv.querySelector('.entry-title');
+
+        nameInput.addEventListener('input', () => {
+            title.textContent = nameInput.value || 'Novo Favor de Região';
+            autoSave();
+        });
+
+        entryDiv.querySelector('.entry-header').addEventListener('click', (e) => {
+            if (e.target.classList.contains('entry-delete-btn')) return;
+            $(`#favor-regiao-content-${id}`).classList.toggle('open');
+        });
+
+        entryDiv.querySelector('.entry-delete-btn').addEventListener('click', (e) => {
+            e.stopPropagation();
+            entryDiv.remove();
+            autoSave();
+        });
+
+        entryDiv.querySelectorAll('input, select, textarea').forEach(el => el.addEventListener('input', autoSave));
     }
 
     function updateConditionEffects() {
@@ -1870,10 +1930,20 @@
       const favoresOrdem = [];
        $$('#favoresOrdemList .entry').forEach(entryDiv => {
         favoresOrdem.push({
-          id: entryDiv.id.replace('favor-entry-', ''),
+          id: entryDiv.id.replace('favor-ordem-entry-', ''),
           ordem: entryDiv.querySelector('.entry-name').value,
           nivel: entryDiv.querySelector('.nivelFavor').value,
           beneficios: entryDiv.querySelector('.entry-desc').value
+        });
+      });
+      
+      const favoresRegiao = [];
+      $$('#favoresRegiaoList .entry').forEach(entryDiv => {
+        favoresRegiao.push({
+          id: entryDiv.id.replace('favor-regiao-entry-', ''),
+          regiao: entryDiv.querySelector('.entry-name').value,
+          nivel: entryDiv.querySelector('.nivelFavor').value,
+          motivo: entryDiv.querySelector('.entry-desc').value
         });
       });
       
@@ -1928,6 +1998,7 @@
         condicoes: $('#condicoes').value,
         pts_exp_espiritual: $('#pts_exp_espiritual').value,
         favoresOrdem: favoresOrdem,
+        favoresRegiao: favoresRegiao,
         distribuicao: {
           cfg_pts: $('#cfg_pts').value,
           cfg_bonus6: $('#cfg_bonus6').value,
@@ -2084,6 +2155,9 @@
 
       $('#favoresOrdemList').innerHTML = '';
       if (data.favoresOrdem) { data.favoresOrdem.forEach(fo => addFavorOrdem(fo.id || generateId(), { ordem: fo.ordem, nivel: fo.nivel, beneficios: fo.beneficios })); }
+      
+      $('#favoresRegiaoList').innerHTML = '';
+      if (data.favoresRegiao) { data.favoresRegiao.forEach(fr => addFavorRegiao(fr.id || generateId(), { regiao: fr.regiao, nivel: fr.nivel, motivo: fr.motivo })); }
 
       // --- NEW/UPDATED HISTORY SECTION ---
       $('#relacionamentosList').innerHTML = '';
@@ -2198,6 +2272,7 @@
           condicoes: "",
           pts_exp_espiritual: 0,
           favoresOrdem: [],
+          favoresRegiao: [],
           distribuicao: {
             cfg_pts: 10,
             cfg_bonus6: 2,
@@ -2396,7 +2471,8 @@
       $('#addItemBtn').addEventListener('click', () => addItem());
       $('#addAttackBtn').addEventListener('click', () => addAttack());
       $('#rollIniciativaBtn').addEventListener('click', rollIniciativa);
-      $('#addFavorOrdemBtn').addEventListener('click', () => addFavorOrdem(generateId(), { ordem: '', nivel: 'Aliado', beneficios: '' }, true));
+      $('#addFavorOrdemBtn').addEventListener('click', () => addFavorOrdem(generateId(), { ordem: '', nivel: 'Neutro', beneficios: '' }, true));
+      $('#addFavorRegiaoBtn').addEventListener('click', () => addFavorRegiao(generateId(), { regiao: '', nivel: 'Neutro', motivo: '' }, true));
       $('#addCampaignEntryBtn').addEventListener('click', showNewEntryForm);
       $('#cancelNewEntryBtn').addEventListener('click', () => {
           $('#new-campaign-form').style.display = 'none';
