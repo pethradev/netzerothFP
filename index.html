@@ -332,7 +332,7 @@
       .app {
         padding: 0;
       }
-      header.top, .tabs, .footer-actions, .hint, .btn, .controls, .list button, .entry-delete-btn, #addRelacionamentoBtn, #addMemoriaBtn, #addImageBtn, .delete-img-btn, #addFavorOrdemBtn, #addFavorRegiaoBtn {
+      header.top, .tabs, .footer-actions, .hint, .btn, .controls, .list button, .entry-delete-btn, #addRelacionamentoBtn, #addMemoriaBtn, #addImageBtn, .delete-img-btn, #addFavorOrdemBtn, #addFavorRegiaoBtn, #addPosseBtn {
         display: none !important;
       }
       .entry-content {
@@ -899,6 +899,14 @@
             <input type="number" id="dracmas" min="0" value="20" style="font-weight:900; font-size:2rem; padding-left: 0; background:transparent; border:none; color:var(--text); width:100%; margin-top: 8px;">
           </div>
         </div>
+        <div class="card" style="margin-top: 12px;">
+            <h3 class="section-title">🏠 Posses</h3>
+            <p class="hint" style="margin-bottom: 12px;">Adicione propriedades, imóveis, baús ou outros itens guardados fora do seu inventário pessoal.</p>
+            <div id="possesList">
+                <!-- Entradas de posses dinâmicas aqui -->
+            </div>
+            <button class="btn small" id="addPosseBtn">➕ Adicionar Posse</button>
+        </div>
       </section>
 
       <section class="pane" data-pane="5">
@@ -1449,6 +1457,52 @@
       calculateSlots();
       autoSave();
     }
+    
+    function addPosse(id, data, isOpen = false) {
+        const possesList = $('#possesList');
+        const entryDiv = document.createElement('div');
+        entryDiv.id = `posse-entry-${id}`;
+        entryDiv.classList.add('entry');
+        data = data || {}; // Garante que data seja um objeto
+        entryDiv.innerHTML = `
+            <div class="entry-header">
+                <h4 class="entry-title">${data.name || 'Nova Posse'}</h4>
+                <button class="btn small destructive entry-delete-btn" data-id="${id}">X</button>
+            </div>
+            <div class="entry-content ${isOpen ? 'open' : ''}" id="posse-content-${id}">
+                <div class="grid cols-2">
+                    <div><label>Nome do Item<input type="text" class="entry-name" placeholder="Ex: Baú em Haravoth" value="${data.name || ''}"></label></div>
+                    <div><label>Tipo<input type="text" class="posse-tipo" placeholder="Ex: Baú, Imóvel" value="${data.type || ''}"></label></div>
+                    <div><label>Peso/Slots Equivalentes<input type="number" class="posse-peso" min="0" value="${data.peso || 0}"></label></div>
+                    <div><label>Valor<input type="text" class="posse-valor" placeholder="Ex: 500 Dracmas" value="${data.valor || ''}"></label></div>
+                    <div style="grid-column: span 2;"><label>Localização (Região)<input type="text" class="posse-regiao" placeholder="Onde está guardado?" value="${data.regiao || ''}"></label></div>
+                    <div style="grid-column: span 2;"><label>Observações<textarea class="posse-obs" placeholder="Detalhes sobre a posse...">${data.obs || ''}</textarea></label></div>
+                </div>
+            </div>
+        `;
+        possesList.appendChild(entryDiv);
+
+        const nameInput = entryDiv.querySelector('.entry-name');
+        const title = entryDiv.querySelector('.entry-title');
+
+        nameInput.addEventListener('input', () => {
+            title.textContent = nameInput.value || 'Nova Posse';
+            autoSave();
+        });
+
+        entryDiv.querySelector('.entry-header').addEventListener('click', (e) => {
+            if (e.target.classList.contains('entry-delete-btn')) return;
+            $(`#posse-content-${id}`).classList.toggle('open');
+        });
+
+        entryDiv.querySelector('.entry-delete-btn').addEventListener('click', (e) => {
+            e.stopPropagation();
+            entryDiv.remove();
+            autoSave();
+        });
+
+        entryDiv.querySelectorAll('input, textarea').forEach(el => el.addEventListener('input', autoSave));
+    }
 
     function addAttack(name = '', bonus = '', damage = '', type = '') {
       const attacksList = $('#attacksList');
@@ -1953,6 +2007,19 @@
                 galeria.push(img.src);
             }
         });
+      
+      const posses = [];
+       $$('#possesList .entry').forEach(entryDiv => {
+          posses.push({
+            id: entryDiv.id.replace('posse-entry-', ''),
+            name: entryDiv.querySelector('.entry-name').value,
+            type: entryDiv.querySelector('.posse-tipo').value,
+            peso: entryDiv.querySelector('.posse-peso').value,
+            valor: entryDiv.querySelector('.posse-valor').value,
+            regiao: entryDiv.querySelector('.posse-regiao').value,
+            obs: entryDiv.querySelector('.posse-obs').value,
+          });
+      });
 
       const data = {
         nome: $('#nome').value,
@@ -1980,7 +2047,8 @@
         ataques: [],
         inventario: {
            dracmas: parseInt($('#dracmas').value) || 0,
-            items: []
+            items: [],
+            posses: posses
         },
         historia: {
             origem: $('#historia_origem').value,
@@ -2152,6 +2220,11 @@
       $('#itemsList').innerHTML = '';
         $('#dracmas').value = (data.inventario && data.inventario.dracmas) || 0;
       if (data.inventario && data.inventario.items) { data.inventario.items.forEach(i => addItem(i.name, i.slots, i.type, i.quantity)); }
+        
+      $('#possesList').innerHTML = '';
+      if (data.inventario && data.inventario.posses) {
+        data.inventario.posses.forEach(p => addPosse(p.id || generateId(), p));
+      }
 
       $('#favoresOrdemList').innerHTML = '';
       if (data.favoresOrdem) { data.favoresOrdem.forEach(fo => addFavorOrdem(fo.id || generateId(), { ordem: fo.ordem, nivel: fo.nivel, beneficios: fo.beneficios })); }
@@ -2254,7 +2327,8 @@
           ataques: [],
           inventario: {
                   dracmas: 20,
-              items: []
+              items: [],
+              posses: []
           },
           historia: {
               origem: "",
@@ -2469,6 +2543,7 @@
       $('#addRelacionamentoBtn').addEventListener('click', () => addRelacionamento(generateId(), { name: '', desc: '' }, true));
       $('#addMemoriaBtn').addEventListener('click', () => addMemoria(generateId(), { name: '', desc: '' }, true));
       $('#addItemBtn').addEventListener('click', () => addItem());
+      $('#addPosseBtn').addEventListener('click', () => addPosse(generateId(), {}, true));
       $('#addAttackBtn').addEventListener('click', () => addAttack());
       $('#rollIniciativaBtn').addEventListener('click', rollIniciativa);
       $('#addFavorOrdemBtn').addEventListener('click', () => addFavorOrdem(generateId(), { ordem: '', nivel: 'Neutro', beneficios: '' }, true));
@@ -2569,4 +2644,3 @@
   </script>
 </body>
 </html>
-
